@@ -2,7 +2,120 @@
 
 From commit `c406c3935f8429db809edd1262230be3e132303d` (2026-07-23 06:07:52 -0700)
 
-**6 commit(s), 1 PR(s) fetched**
+**14 commit(s), 1 PR(s) fetched**
+
+## 9acf098 — feat: add new flags for -d default output, --all for including all flags, and --no-email for removing emails
+
+| Field | Value |
+|-------|-------|
+| **Hash** | `9acf098d8ab21f3489b1d18386117f99c051ead9` |
+| **Date** | Thu, 23 Jul 2026 15:35:46 |
+| **Author** | lglen <lglen@gmail.com> |
+| **Lines** | +34 / −9 |
+| **Files** | `README.md`, `bin/awk-changelog.js`, `src/changelog-pr.js`, `src/changelog.js` |
+| **Refs** | HEAD -> main, origin/main, origin/HEAD |
+
+---
+
+---
+
+## 17a5c36 — chore(dev): npm script to replace personal info
+
+| Field | Value |
+|-------|-------|
+| **Hash** | `17a5c362f8abdf1dc262010c5393da5f91dd4025` |
+| **Date** | Thu, 23 Jul 2026 15:23:57 |
+| **Author** | lglen <lglen@gmail.com> |
+| **Lines** | +2 / −2 |
+| **Files** | `package.json` |
+
+---
+
+---
+
+## 2f5748f — feat: add --all flag that runs awkch --pr -o changelog.md
+
+| Field | Value |
+|-------|-------|
+| **Hash** | `2f5748f4c028d5a8c812805f88743e55172364f5` |
+| **Date** | Thu, 23 Jul 2026 15:13:02 |
+| **Author** | lglen <lglen@gmail.com> |
+| **Lines** | +7 / −0 |
+| **Files** | `bin/awk-changelog.js` |
+
+---
+
+---
+
+## 62af092 — refact: remove redunant no prs flag
+
+| Field | Value |
+|-------|-------|
+| **Hash** | `62af0922e0c880bf4186588e0182aea0192fafc1` |
+| **Date** | Thu, 23 Jul 2026 15:03:31 |
+| **Author** | lglen <lglen@gmail.com> |
+| **Lines** | +4 / −10 |
+| **Files** | `README.md`, `bin/awk-changelog.js` |
+
+---
+
+---
+
+## f027b53 — chore(dev): add gitignored test changelog for testing the tool
+
+| Field | Value |
+|-------|-------|
+| **Hash** | `f027b53603970f2b4868d97908a78193998cd625` |
+| **Date** | Thu, 23 Jul 2026 14:57:53 |
+| **Author** | lglen <lglen@gmail.com> |
+| **Lines** | +4 / −1 |
+| **Files** | `.gitignore`, `package.json` |
+
+---
+
+---
+
+## d536666 — refactor: remove log command (was default anyway)
+
+| Field | Value |
+|-------|-------|
+| **Hash** | `d536666b4927ced1802dd82e8fd37bd1e3548e90` |
+| **Date** | Thu, 23 Jul 2026 14:57:12 |
+| **Author** | lglen <lglen@gmail.com> |
+| **Lines** | +1 / −26 |
+| **Files** | `README.md`, `bin/awk-changelog.js` |
+
+---
+
+---
+
+## 8339088 — feat: update bash scripts to use code blocks for pr descriptions
+
+| Field | Value |
+|-------|-------|
+| **Hash** | `833908811fec5ba90c3570b9fff06a72dc99a604` |
+| **Date** | Thu, 23 Jul 2026 14:47:41 |
+| **Author** | lglen <lglen@gmail.com> |
+| **Lines** | +4 / −0 |
+| **Files** | `bash/git-changelog-pr.sh`, `src/changelog-pr.js` |
+
+---
+
+---
+
+## 00b9493 — chore: add an example changelog with pr to readme
+
+| Field | Value |
+|-------|-------|
+| **Hash** | `00b94930ea2f0f79c58149f96ac738b6845da7b8` |
+| **Date** | Thu, 23 Jul 2026 14:47:08 |
+| **Author** | lglen <lglen@gmail.com> |
+| **Lines** | +178 / −2 |
+| **Files** | `CHANGELOG.md`, `README.md` |
+
+---
+
+---
 
 ## cd69d7d — Merge pull request #1 from LaishGlenberg:lg/feat/add-changelog
 
@@ -13,7 +126,6 @@ From commit `c406c3935f8429db809edd1262230be3e132303d` (2026-07-23 06:07:52 -070
 | **Author** | lglen <lglen@gmail.com> |
 | **Lines** | +0 / −0 |
 | **Files** |  |
-| **Refs** | HEAD -> main, origin/main, origin/HEAD |
 | **Pull Request** | #1 |
 
 ### Commit Message
