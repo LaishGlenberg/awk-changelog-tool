@@ -1,5 +1,5 @@
 {
-  "name": "awk-changelog-tool",
+  "name": "@lglen/awk-changelog-tool",
   "version": "1.0.0",
   "description": "Lightning-fast changelog generator from git history. Supports PR descriptions via GitHub CLI.",
   "keywords": [

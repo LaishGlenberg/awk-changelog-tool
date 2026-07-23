@@ -1,4 +1,4 @@
-# awk-changelog-tool
+# @lglen/awk-changelog-tool
 
 Lightning-fast changelog generator from git history. Supports PR descriptions via GitHub CLI.
 
@@ -15,7 +15,7 @@ Lightning-fast changelog generator from git history. Supports PR descriptions vi
 ### As a project dependency (recommended for build pipelines)
 
 ```bash
-npm install --save-dev awk-changelog-tool
+npm install --save-dev @lglen/awk-changelog-tool
 ```
 
 Then add it to your `package.json` scripts:
@@ -24,7 +24,7 @@ Then add it to your `package.json` scripts:
 {
   "scripts": {
     "changelog": "awkch --default",
-    "changelog:pr": "awkch --all",
+    "changelog:pr": "awkch --all"
   }
 }
 ```
@@ -34,7 +34,7 @@ Now `npm run changelog` and `npm run changelog:pr` work immediately — npm auto
 ### Globally
 
 ```bash
-npm install -g awk-changelog-tool
+npm install -g @lglen/awk-changelog-tool
 ```
 
 Then `awkch` is available anywhere on your PATH.
@@ -42,7 +42,7 @@ Then `awkch` is available anywhere on your PATH.
 ### On the fly (no install)
 
 ```bash
-npx awkch
+npx @lglen/awk-changelog-tool
 ```
 
 npx fetches and caches the package automatically. Great for one-off usage.
@@ -99,7 +99,7 @@ awkch bash-path        # Show path to original bash scripts
 ## Programmatic API
 
 ```js
-import { generateChangelog, generateChangelogWithPRs } from 'awk-changelog-tool';
+import { generateChangelog, generateChangelogWithPRs } from '@lglen/awk-changelog-tool';
 
 // Basic changelog as a string
 const md = generateChangelog({ since: 'HEAD~10' });
@@ -121,7 +121,7 @@ The original awk-based scripts are preserved in `bash/` for users who prefer the
 To use them directly:
 
 ```bash
-./node_modules/awk-changelog-tool/bash/git-changelog.sh
+./node_modules/@lglen/awk-changelog-tool/bash/git-changelog.sh
 ```
 
 Or find the path:
