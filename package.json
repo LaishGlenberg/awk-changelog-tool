@@ -1,0 +1,26 @@
+{
+  "name": "awk-changelog-tool",
+  "version": "1.0.0",
+  "description": "Awk changelog tool, used for generating changelogs from git history lightning fast. Supports including pr descriptions with gh cli",
+  "keywords": [
+    "changelog",
+    "git",
+    "github",
+    "git-history",
+    "auto",
+    "changelog",
+    "changelog",
+    "generation"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "awk-changelog-tool"
+  },
+  "license": "MIT",
+  "author": "lglen",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
