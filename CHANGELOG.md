@@ -2,7 +2,58 @@
 
 From commit `c406c3935f8429db809edd1262230be3e132303d` (2026-07-23 06:07:52 -0700)
 
-**4 commit(s)**
+**6 commit(s), 1 PR(s) fetched**
+
+## cd69d7d — Merge pull request #1 from LaishGlenberg:lg/feat/add-changelog
+
+| Field | Value |
+|-------|-------|
+| **Hash** | `cd69d7d06216baab6caf8ec417f7a9b69b0845b4` |
+| **Date** | Thu, 23 Jul 2026 14:20:20 |
+| **Author** | lglen <lglen@gmail.com> |
+| **Lines** | +0 / −0 |
+| **Files** |  |
+| **Refs** | HEAD -> main, origin/main, origin/HEAD |
+| **Pull Request** | #1 |
+
+### Commit Message
+
+chore: generate changelog
+
+---
+
+### Pull Request Description
+
+```
+## What & Why
+
+- Generate a changelog for the repo using the awkch tool to demo the tool
+
+## Changes
+
+- Add changelog.md, update gitignore
+
+## Notes
+
+- Adding as a pr to demo the pr tool next
+```
+
+---
+
+## 3da00e5 — chore: generate changelog
+
+| Field | Value |
+|-------|-------|
+| **Hash** | `3da00e5ee2a0e815c0b45ffc02c88c92166ce081` |
+| **Date** | Thu, 23 Jul 2026 14:14:20 |
+| **Author** | lglen <lglen@gmail.com> |
+| **Lines** | +54 / −1 |
+| **Files** | `.gitignore`, `CHANGELOG.md` |
+| **Refs** | origin/lg/feat/add-changelog, lg/feat/add-changelog |
+
+---
+
+---
 
 ## 2c2081c — refactor: shorten name to awkch
 
@@ -13,7 +64,8 @@ From commit `c406c3935f8429db809edd1262230be3e132303d` (2026-07-23 06:07:52 -070
 | **Author** | lglen <lglen@gmail.com> |
 | **Lines** | +17 / −17 |
 | **Files** | `README.md`, `bin/awk-changelog.js`, `package.json` |
-| **Refs** | HEAD -> lg/feat/add-changelog, origin/main, main |
+
+---
 
 ---
 
@@ -29,6 +81,8 @@ From commit `c406c3935f8429db809edd1262230be3e132303d` (2026-07-23 06:07:52 -070
 
 ---
 
+---
+
 ## 9935259 — chore: Scaffold npm package repository, add apis, docs, tests
 
 | Field | Value |
@@ -41,6 +95,8 @@ From commit `c406c3935f8429db809edd1262230be3e132303d` (2026-07-23 06:07:52 -070
 
 ---
 
+---
+
 ## c406c39 — chore: initial commit with both bash scripts (regular and regular + pr descriptions)
 
 | Field | Value |
@@ -50,5 +106,7 @@ From commit `c406c3935f8429db809edd1262230be3e132303d` (2026-07-23 06:07:52 -070
 | **Author** | lglen <lglen@gmail.com> |
 | **Lines** | +284 / −0 |
 | **Files** | `git-changelog-pr.sh`, `git-changelog.sh`, `package.json` |
+
+---
 
 ---
