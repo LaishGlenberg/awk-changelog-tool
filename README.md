@@ -12,15 +12,40 @@ Lightning-fast changelog generator from git history. Supports PR descriptions vi
 
 ## Installation
 
+### As a project dependency (recommended for build pipelines)
+
+```bash
+npm install --save-dev awk-changelog-tool
+```
+
+Then add it to your `package.json` scripts:
+
+```json
+{
+  "scripts": {
+    "changelog": "awk-changelog",
+    "changelog:pr": "awk-changelog --pr"
+  }
+}
+```
+
+Now `npm run changelog` and `npm run changelog:pr` work immediately — npm auto-resolves `awk-changelog` from `node_modules/.bin`.
+
+### Globally
+
 ```bash
 npm install -g awk-changelog-tool
 ```
 
-Or use directly:
+Then `awk-changelog` is available anywhere on your PATH.
+
+### On the fly (no install)
 
 ```bash
 npx awk-changelog-tool
 ```
+
+npx fetches and caches the package automatically. Great for one-off usage.
 
 ## CLI Usage
 
