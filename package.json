@@ -31,7 +31,9 @@
   ],
   "scripts": {
     "test": "node --test test/*.test.js",
-    "prepublishOnly": "node --test test/"
+    "prepublishOnly": "node --test test/",
+    "awkch": "awkch --pr -o CHANGELOG.md",
+    "awkch:test": "awkch --pr -o TEST_CHANGELOG.md"
   },
   "engines": {
     "node": ">=18"
