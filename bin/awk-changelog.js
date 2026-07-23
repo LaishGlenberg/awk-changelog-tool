@@ -16,7 +16,7 @@ const program = new Command();
 program
   .name('awkch')
   .description('Lightning-fast changelog generator from git history')
-  .version(pkg.version);
+  .version(pkg.version, '-v, -V, --version');
 
 // ── `pr` command — Changelog with PR descriptions ──
 program
@@ -24,9 +24,10 @@ program
   .description('Generate a changelog with PR descriptions (requires gh CLI)')
   .argument('[since]', 'Starting ref (commit-ish, default: first commit)')
   .option('-o, --output <file>', 'Write to file instead of stdout')
+  .option('-n, --no-email', 'Strip email addresses from author names')
   .action((since, options) => {
     try {
-      const result = generateChangelogWithPRs({ since });
+      const result = generateChangelogWithPRs({ since, noEmail: options.email === false });
 
       if (result.prCount === 0) {
         console.error('⚠️  No PR descriptions found. Ensure gh CLI is installed and authenticated.');
@@ -60,19 +61,26 @@ program
   .argument('[since]', 'Starting ref (default: first commit)')
   .option('-o, --output <file>', 'Output file')
   .option('-p, --pr', 'Include PR descriptions (requires gh CLI)')
-  .option('-a, --all', 'Shorthand for --pr -o CHANGELOG.md')
+  .option('-n, --no-email', 'Strip email addresses from author names')
+  .option('-d, --default', 'Set output to CHANGELOG.md')
+  .option('-a, --all', 'Shorthand for --pr --default')
   .allowExcessArguments(false)
   .action((since, options) => {
-    // --all is shorthand for --pr -o CHANGELOG.md
+    // --all is shorthand for --pr --default
     if (options.all) {
       options.pr = true;
-      if (!options.output) options.output = 'CHANGELOG.md';
+      options.default = true;
+    }
+
+    // --default sets output to CHANGELOG.md (unless -o was explicitly given)
+    if (options.default && !options.output) {
+      options.output = 'CHANGELOG.md';
     }
 
     // Delegate based on --pr flag
     if (options.pr) {
       try {
-        const result = generateChangelogWithPRs({ since });
+        const result = generateChangelogWithPRs({ since, noEmail: options.email === false });
         if (options.output) {
           writeFileSync(resolve(options.output), result.changelog, 'utf-8');
           console.error(`✅ Changelog written to ${options.output}`);
@@ -85,7 +93,7 @@ program
       }
     } else {
       try {
-        const changelog = generateChangelog({ since });
+        const changelog = generateChangelog({ since, noEmail: options.email === false });
         if (options.output) {
           writeFileSync(resolve(options.output), changelog, 'utf-8');
           console.error(`✅ Changelog written to ${options.output}`);

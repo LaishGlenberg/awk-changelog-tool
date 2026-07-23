@@ -182,6 +182,13 @@ export function generateChangelog(options = {}) {
   }
 
   const commits = parseGitLog(raw);
+
+  if (options.noEmail) {
+    for (const c of commits) {
+      c.author = c.author.replace(/ <[^>]+>$/, '');
+    }
+  }
+
   const sinceDate = getCommitDate(since);
 
   const lines = [];

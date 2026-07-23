@@ -23,8 +23,8 @@ Then add it to your `package.json` scripts:
 ```json
 {
   "scripts": {
-    "changelog": "awkch",
-    "changelog:pr": "awkch --pr"
+    "changelog": "awkch --default",
+    "changelog:pr": "awkch --all",
   }
 }
 ```
@@ -92,6 +92,9 @@ awkch bash-path        # Show path to original bash scripts
 | `-h, --help` | Show help |
 | `-o, --output <file>` | Write to file (default: stdout) |
 | `-p, --pr` | Include PR descriptions (requires `gh` CLI) |
+| `-d, --default` | Set output file to `CHANGELOG.md` |
+| `-a, --all` | Shorthand for `--pr --default` |
+| `-n, --no-email` | Strip email addresses from author names |
 
 ## Programmatic API
 

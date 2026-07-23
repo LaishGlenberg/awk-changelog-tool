@@ -90,6 +90,13 @@ export function generateChangelogWithPRs(options = {}) {
   }
 
   const commits = parseGitLog(raw);
+
+  if (options.noEmail) {
+    for (const c of commits) {
+      c.author = c.author.replace(/ <[^>]+>$/, '');
+    }
+  }
+
   const prs = fetchPRs();
   const prLookup = buildPRLookup(prs);
 
