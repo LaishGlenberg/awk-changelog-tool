@@ -1,26 +1,42 @@
 {
   "name": "awk-changelog-tool",
   "version": "1.0.0",
-  "description": "Awk changelog tool, used for generating changelogs from git history lightning fast. Supports including pr descriptions with gh cli",
+  "description": "Lightning-fast changelog generator from git history. Supports PR descriptions via GitHub CLI.",
   "keywords": [
     "changelog",
     "git",
     "github",
     "git-history",
-    "auto",
-    "changelog",
-    "changelog",
-    "generation"
+    "auto-changelog",
+    "changelog-generator",
+    "markdown"
   ],
   "repository": {
     "type": "git",
-    "url": "awk-changelog-tool"
+    "url": "https://github.com/LaishGlenberg/awk-changelog-tool.git"
   },
   "license": "MIT",
   "author": "lglen",
   "type": "module",
-  "main": "index.js",
+  "main": "./src/index.js",
+  "bin": {
+    "awk-changelog": "./bin/awk-changelog.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "bash/",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test test/*.test.js",
+    "prepublishOnly": "node --test test/"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "commander": "^12.1.0"
   }
 }
