@@ -60,8 +60,15 @@ program
   .argument('[since]', 'Starting ref (default: first commit)')
   .option('-o, --output <file>', 'Output file')
   .option('-p, --pr', 'Include PR descriptions (requires gh CLI)')
+  .option('-a, --all', 'Shorthand for --pr -o CHANGELOG.md')
   .allowExcessArguments(false)
   .action((since, options) => {
+    // --all is shorthand for --pr -o CHANGELOG.md
+    if (options.all) {
+      options.pr = true;
+      if (!options.output) options.output = 'CHANGELOG.md';
+    }
+
     // Delegate based on --pr flag
     if (options.pr) {
       try {
