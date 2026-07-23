@@ -80,9 +80,6 @@ awkch --pr
 ### Subcommands
 
 ```bash
-awkch log              # Basic changelog (same as default)
-awkch log -o CHANGES.md
-
 awkch pr               # Changelog with PR descriptions
 awkch pr --no-prs      # Skip PR fetch, just git log
 

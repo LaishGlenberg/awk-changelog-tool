@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { writeFileSync, readFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Command } from 'commander';
 import { generateChangelog } from '../src/changelog.js';
@@ -17,28 +17,6 @@ program
   .name('awkch')
   .description('Lightning-fast changelog generator from git history')
   .version(pkg.version);
-
-// ── `log` command — Basic changelog ──
-program
-  .command('log')
-  .description('Generate a changelog from git history')
-  .argument('[since]', 'Starting ref (commit-ish, default: first commit)')
-  .option('-o, --output <file>', 'Write to file instead of stdout')
-  .action((since, options) => {
-    try {
-      const changelog = generateChangelog({ since });
-
-      if (options.output) {
-        writeFileSync(resolve(options.output), changelog, 'utf-8');
-        console.error(`✅ Changelog written to ${options.output}`);
-      } else {
-        process.stdout.write(changelog);
-      }
-    } catch (err) {
-      console.error(`❌ ${err.message}`);
-      process.exit(1);
-    }
-  });
 
 // ── `pr` command — Changelog with PR descriptions ──
 program
