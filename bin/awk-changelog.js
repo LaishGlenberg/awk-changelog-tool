@@ -24,18 +24,14 @@ program
   .description('Generate a changelog with PR descriptions (requires gh CLI)')
   .argument('[since]', 'Starting ref (commit-ish, default: first commit)')
   .option('-o, --output <file>', 'Write to file instead of stdout')
-  .option('--no-prs', 'Skip fetching PR descriptions (just git log)')
   .action((since, options) => {
     try {
       const result = generateChangelogWithPRs({ since });
 
-      if (options.prs !== false) {
-        // If PRs were specified but gh didn't return any, warn
-        if (result.prCount === 0) {
-          console.error('⚠️  No PR descriptions found. Ensure gh CLI is installed and authenticated.');
-        } else {
-          console.error(`🔍 Included ${result.prCount} PR description(s)`);
-        }
+      if (result.prCount === 0) {
+        console.error('⚠️  No PR descriptions found. Ensure gh CLI is installed and authenticated.');
+      } else {
+        console.error(`🔍 Included ${result.prCount} PR description(s)`);
       }
 
       if (options.output) {

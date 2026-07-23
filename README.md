@@ -81,8 +81,6 @@ awkch --pr
 
 ```bash
 awkch pr               # Changelog with PR descriptions
-awkch pr --no-prs      # Skip PR fetch, just git log
-
 awkch bash-path        # Show path to original bash scripts
 ```
 
