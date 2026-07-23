@@ -23,13 +23,13 @@ Then add it to your `package.json` scripts:
 ```json
 {
   "scripts": {
-    "changelog": "awk-changelog",
-    "changelog:pr": "awk-changelog --pr"
+    "changelog": "awkch",
+    "changelog:pr": "awkch --pr"
   }
 }
 ```
 
-Now `npm run changelog` and `npm run changelog:pr` work immediately — npm auto-resolves `awk-changelog` from `node_modules/.bin`.
+Now `npm run changelog` and `npm run changelog:pr` work immediately — npm auto-resolves `awkch` from `node_modules/.bin`.
 
 ### Globally
 
@@ -37,12 +37,12 @@ Now `npm run changelog` and `npm run changelog:pr` work immediately — npm auto
 npm install -g awk-changelog-tool
 ```
 
-Then `awk-changelog` is available anywhere on your PATH.
+Then `awkch` is available anywhere on your PATH.
 
 ### On the fly (no install)
 
 ```bash
-npx awk-changelog-tool
+npx awkch
 ```
 
 npx fetches and caches the package automatically. Great for one-off usage.
@@ -54,19 +54,19 @@ npx fetches and caches the package automatically. Great for one-off usage.
 Generate a changelog from the first commit to HEAD:
 
 ```bash
-awk-changelog
+awkch
 ```
 
 From a specific ref:
 
 ```bash
-awk-changelog 3c06d42
+awkch 3c06d42
 ```
 
 Write to a file:
 
 ```bash
-awk-changelog -o CHANGELOG.md
+awkch -o CHANGELOG.md
 ```
 
 ### With PR descriptions
@@ -74,19 +74,19 @@ awk-changelog -o CHANGELOG.md
 Requires the [GitHub CLI](https://cli.github.com/) (`gh`) installed and authenticated.
 
 ```bash
-awk-changelog --pr
+awkch --pr
 ```
 
 ### Subcommands
 
 ```bash
-awk-changelog log              # Basic changelog (same as default)
-awk-changelog log -o CHANGES.md
+awkch log              # Basic changelog (same as default)
+awkch log -o CHANGES.md
 
-awk-changelog pr               # Changelog with PR descriptions
-awk-changelog pr --no-prs      # Skip PR fetch, just git log
+awkch pr               # Changelog with PR descriptions
+awkch pr --no-prs      # Skip PR fetch, just git log
 
-awk-changelog bash-path        # Show path to original bash scripts
+awkch bash-path        # Show path to original bash scripts
 ```
 
 ### Options
@@ -129,7 +129,7 @@ To use them directly:
 Or find the path:
 
 ```bash
-awk-changelog bash-path
+awkch bash-path
 ```
 
 ## Requirements

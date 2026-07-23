@@ -14,7 +14,7 @@ const pkg = JSON.parse(
 const program = new Command();
 
 program
-  .name('awk-changelog')
+  .name('awkch')
   .description('Lightning-fast changelog generator from git history')
   .version(pkg.version);
 

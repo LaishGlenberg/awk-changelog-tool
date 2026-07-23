@@ -20,7 +20,7 @@
   "type": "module",
   "main": "./src/index.js",
   "bin": {
-    "awk-changelog": "./bin/awk-changelog.js"
+    "awkch": "./bin/awk-changelog.js"
   },
   "files": [
     "bin/",
