@@ -163,7 +163,9 @@ echo "🔍 Generating changelog..." >&2
     if (is_merge && pr_number != "" && pr_number in pr_desc) {
       print "### Pull Request Description"
       print ""
+      print "```"
       print pr_desc[pr_number]
+      print "```"
       print ""
     }
 

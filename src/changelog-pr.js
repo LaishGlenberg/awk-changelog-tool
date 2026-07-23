@@ -114,7 +114,9 @@ export function generateChangelogWithPRs(options = {}) {
         prsUsed.add(prNum);
         lines.push('### Pull Request Description');
         lines.push('');
+        lines.push('```');
         lines.push(prLookup[prNum]);
+        lines.push('```');
         lines.push('');
       }
     }
