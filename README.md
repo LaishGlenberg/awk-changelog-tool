@@ -4,11 +4,11 @@ Lightning-fast changelog generator from git history. Supports PR descriptions vi
 
 ## Features
 
-- ⚡ **Blazing fast** — Uses `git log --numstat` in a single pass (inspired by awk pattern scanning)
-- 📝 **Markdown output** — Clean, readable changelogs with commit stats (files changed, lines added/removed)
-- 🔗 **PR descriptions** — Optional integration with GitHub CLI to include pull request descriptions on merge commits
-- 🧩 **CLI + API** — Use as a command-line tool or import as a library
-- 🐚 **Bash scripts included** — Original awk-based scripts preserved in `bash/` for advanced users
+- **Blazing fast** — Uses `git log --numstat` in a single pass (inspired by awk pattern scanning)
+- **Markdown output** — Clean, readable changelogs with commit stats (files changed, lines added/removed)
+- **PR descriptions** — Optional integration with GitHub CLI to include pull request descriptions on merge commits
+- **CLI + API** — Use as a command-line tool or import as a library
+- **Bash scripts included** — Original awk-based scripts preserved in `bash/` for advanced users
 
 ## Installation
 

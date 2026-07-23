@@ -31,7 +31,7 @@
   ],
   "scripts": {
     "test": "node --test test/*.test.js",
-    "prepublishOnly": "node --test test/",
+    "prepublishOnly": "node --test test/basic.test.js",
     "changelog": "awkch --all && node --input-type=module -e \"import{readFileSync,writeFileSync}from'fs';let f='CHANGELOG.md';let c=readFileSync(f,'utf-8');c=c.replace(/^(\\| \\*\\*Author\\*\\* \\| ).*( \\|)$/gm,(_,a,b)=>a+'lglen <lglen@gmail.com>'+b);writeFileSync(f,c)\"",
     "testlog": "awkch --pr -o TEST_CHANGELOG.md"
   },
