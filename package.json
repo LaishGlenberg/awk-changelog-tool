@@ -39,6 +39,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "commander": "^12.1.0"
+    "commander": "^12.1.0",
+    "node-jq": "^6.3.1"
   }
 }
