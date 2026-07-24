@@ -4,11 +4,11 @@ Lightning-fast changelog generator from git history. Supports PR descriptions vi
 
 ## Features
 
-- **Blazing fast** — Uses `git log --numstat` in a single pass (inspired by awk pattern scanning)
+- **Extremely fast** — Uses `git log --numstat` in a single pass then pipe to awk
 - **Markdown output** — Clean, readable changelogs with commit stats (files changed, lines added/removed)
 - **PR descriptions** — Optional integration with GitHub CLI to include pull request descriptions on merge commits
-- **CLI + API** — Use as a command-line tool or import as a library
-- **Bash scripts included** — Original awk-based scripts preserved in `bash/` for advanced users
+- **CLI + API** — Use as a command-line tool or dev dependency
+- **Zero setup required** — Use directly through npx, or 'awkch -d' as a dev dependency/global install
 
 ## Installation
 
@@ -63,6 +63,10 @@ From a specific ref:
 awkch 3c06d42
 ```
 
+```bash
+awkch HEAD~50
+```
+
 Write to a file:
 
 ```bash
@@ -75,13 +79,6 @@ Requires the [GitHub CLI](https://cli.github.com/) (`gh`) installed and authenti
 
 ```bash
 awkch --pr
-```
-
-### Subcommands
-
-```bash
-awkch pr               # Changelog with PR descriptions
-awkch bash-path        # Show path to original bash scripts
 ```
 
 ### Options
@@ -122,12 +119,6 @@ To use them directly:
 
 ```bash
 ./node_modules/@lglen/awk-changelog-tool/bash/git-changelog.sh
-```
-
-Or find the path:
-
-```bash
-awkch bash-path
 ```
 
 ## Requirements
