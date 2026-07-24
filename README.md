@@ -93,7 +93,7 @@ awkch --pr
 | `-a, --all` | Shorthand for `--pr --default` |
 | `-n, --no-email` | Strip email addresses from author names |
 
-## Programmatic API
+## Programmatic API available through `npm install`
 
 ```js
 import { generateChangelog, generateChangelogWithPRs } from '@lglen/awk-changelog-tool';
@@ -113,7 +113,7 @@ console.log(result.changelog);
 The original awk-based scripts are preserved in `bash/` for users who prefer them:
 
 - `bash/git-changelog.sh` — Basic changelog using awk
-- `bash/git-changelog-pr.sh` — Changelog with PR descriptions using awk + jq + gh
+- `bash/git-changelog-pr.sh` — Changelog with PR descriptions using awk + jq (via bundled `node-jq`) + gh
 
 To use them directly:
 
@@ -126,6 +126,9 @@ To use them directly:
 - **Node.js** >= 18
 - **git** (for reading history)
 - **gh** CLI (optional, for PR descriptions)
+
+
+**jq** — Bundled via `node-jq` npm package (no system install needed), ran in bash using `jq.mjs`
 
 ## License
 
