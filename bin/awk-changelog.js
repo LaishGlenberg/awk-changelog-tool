@@ -18,45 +18,7 @@ program
   .description('Lightning-fast changelog generator from git history')
   .version(pkg.version, '-v, -V, --version');
 
-// ── `pr` command — Changelog with PR descriptions ──
-program
-  .command('pr')
-  .description('Generate a changelog with PR descriptions (requires gh CLI)')
-  .argument('[since]', 'Starting ref (commit-ish, default: first commit)')
-  .option('-o, --output <file>', 'Write to file instead of stdout')
-  .option('-n, --no-email', 'Strip email addresses from author names')
-  .action((since, options) => {
-    try {
-      const result = generateChangelogWithPRs({ since, noEmail: options.email === false });
-
-      if (result.prCount === 0) {
-        console.error('⚠️  No PR descriptions found. Ensure gh CLI is installed and authenticated.');
-      } else {
-        console.error(`🔍 Included ${result.prCount} PR description(s)`);
-      }
-
-      if (options.output) {
-        writeFileSync(resolve(options.output), result.changelog, 'utf-8');
-        console.error(`✅ Changelog written to ${options.output}`);
-      } else {
-        process.stdout.write(result.changelog);
-      }
-    } catch (err) {
-      console.error(`❌ ${err.message}`);
-      process.exit(1);
-    }
-  });
-
-// ── `bash` command — Print path to original bash scripts ──
-program
-  .command('bash-path')
-  .description('Show the path to the original bash scripts')
-  .action(() => {
-    const bashDir = new URL('../bash/', import.meta.url);
-    console.log(bashDir.pathname);
-  });
-
-// ── Default: if no subcommand, run log ──
+// ── Default run ──
 program
   .argument('[since]', 'Starting ref (default: first commit)')
   .option('-o, --output <file>', 'Output file')

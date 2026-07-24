@@ -4,11 +4,11 @@ Lightning-fast changelog generator from git history. Supports PR descriptions vi
 
 ## Features
 
-- **Blazing fast** — Uses `git log --numstat` in a single pass (inspired by awk pattern scanning)
+- **Extremely fast** — Uses `git log --numstat` in a single pass then pipe to awk
 - **Markdown output** — Clean, readable changelogs with commit stats (files changed, lines added/removed)
 - **PR descriptions** — Optional integration with GitHub CLI to include pull request descriptions on merge commits
-- **CLI + API** — Use as a command-line tool or import as a library
-- **Bash scripts included** — Original awk-based scripts preserved in `bash/` for advanced users
+- **CLI + API** — Use as a command-line tool or dev dependency
+- **Zero setup required** — Use directly through npx, or 'awkch -d' as a dev dependency/global install
 
 ## Installation
 
@@ -63,6 +63,10 @@ From a specific ref:
 awkch 3c06d42
 ```
 
+```bash
+awkch HEAD~50
+```
+
 Write to a file:
 
 ```bash
@@ -77,13 +81,6 @@ Requires the [GitHub CLI](https://cli.github.com/) (`gh`) installed and authenti
 awkch --pr
 ```
 
-### Subcommands
-
-```bash
-awkch pr               # Changelog with PR descriptions
-awkch bash-path        # Show path to original bash scripts
-```
-
 ### Options
 
 | Option | Description |
@@ -96,7 +93,7 @@ awkch bash-path        # Show path to original bash scripts
 | `-a, --all` | Shorthand for `--pr --default` |
 | `-n, --no-email` | Strip email addresses from author names |
 
-## Programmatic API
+## Programmatic API available through `npm install`
 
 ```js
 import { generateChangelog, generateChangelogWithPRs } from '@lglen/awk-changelog-tool';
@@ -116,7 +113,7 @@ console.log(result.changelog);
 The original awk-based scripts are preserved in `bash/` for users who prefer them:
 
 - `bash/git-changelog.sh` — Basic changelog using awk
-- `bash/git-changelog-pr.sh` — Changelog with PR descriptions using awk + jq + gh
+- `bash/git-changelog-pr.sh` — Changelog with PR descriptions using awk + jq (via bundled `node-jq`) + gh
 
 To use them directly:
 
@@ -124,17 +121,14 @@ To use them directly:
 ./node_modules/@lglen/awk-changelog-tool/bash/git-changelog.sh
 ```
 
-Or find the path:
-
-```bash
-awkch bash-path
-```
-
 ## Requirements
 
 - **Node.js** >= 18
 - **git** (for reading history)
 - **gh** CLI (optional, for PR descriptions)
+
+
+**jq** — Bundled via `node-jq` npm package (no system install needed), ran in bash using `jq.mjs`
 
 ## License
 

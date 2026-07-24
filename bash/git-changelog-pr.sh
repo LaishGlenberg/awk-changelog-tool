@@ -36,7 +36,9 @@ fi
 # ── Step 2: Pre-build an awk-readable lookup table ──
 # Each line: pr_body[PR_NUMBER]="BASE64_ENCODED_BODY"
 # Base64 avoids all escaping issues with multi-line bodies and special chars.
-jq -r '.[] | "pr_body[" + (.number|tostring) + "]=\"" + (.body // "" | @base64) + "\""' \
+# Uses bundled node-jq (jq.mjs) from the npm package.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+node "$SCRIPT_DIR/jq.mjs" '.[] | "pr_body[" + (.number|tostring) + "]=\"" + (.body // "" | @base64) + "\""' \
   "$PR_JSON" > "$PR_LOOKUP"
 
 echo "🔍 Generating changelog..." >&2

@@ -2,7 +2,107 @@
 
 From commit `c406c3935f8429db809edd1262230be3e132303d` (2026-07-23 06:07:52 -0700)
 
-**14 commit(s), 1 PR(s) fetched**
+**21 commit(s), 1 PR(s) fetched**
+
+## 44f3506 — chore: update readme with node-jq usage
+
+| Field | Value |
+|-------|-------|
+| **Hash** | `44f3506aaf30b9b01da0e2efc6452777b1ada65d` |
+| **Date** | Fri, 24 Jul 2026 01:40:56 |
+| **Author** | lglen <lglen@gmail.com> |
+| **Lines** | +5 / −2 |
+| **Files** | `README.md` |
+| **Refs** | HEAD -> lg/refactor/remove-sub-commands |
+
+---
+
+---
+
+## 890d9e6 — feat: replace jq command with node-jq and mjs helper script that is called in bash. No need to have jq installed (windows).
+
+| Field | Value |
+|-------|-------|
+| **Hash** | `890d9e6917ee553013e71a70f86dcdd4bea01382` |
+| **Date** | Fri, 24 Jul 2026 01:17:09 |
+| **Author** | lglen <lglen@gmail.com> |
+| **Lines** | +279 / −6 |
+| **Files** | `bash/git-changelog-pr.sh`, `bash/jq.mjs`, `package-lock.json`, `package.json` |
+
+---
+
+---
+
+## 13d6fc1 — chore: remove old pr subcommand (was completely useless)
+
+| Field | Value |
+|-------|-------|
+| **Hash** | `13d6fc19b740ca1e182ce5c19ebb57ced2ba1641` |
+| **Date** | Fri, 24 Jul 2026 00:30:06 |
+| **Author** | lglen <lglen@gmail.com> |
+| **Lines** | +8 / −55 |
+| **Files** | `README.md`, `bin/awk-changelog.js` |
+
+---
+
+---
+
+## dc099ce — 1.0.1
+
+| Field | Value |
+|-------|-------|
+| **Hash** | `dc099cee9c094abc253332db547e3b9c936baf59` |
+| **Date** | Thu, 23 Jul 2026 15:47:58 |
+| **Author** | lglen <lglen@gmail.com> |
+| **Lines** | +3 / −3 |
+| **Files** | `package-lock.json`, `package.json` |
+| **Refs** | tag: v1.0.1, origin/main, origin/lg/refactor/remove-sub-commands, origin/HEAD, main |
+
+---
+
+---
+
+## 23a849a — chore: add scope to package
+
+| Field | Value |
+|-------|-------|
+| **Hash** | `23a849a1b601a04f1b409535ee8f669dfbd1dd22` |
+| **Date** | Thu, 23 Jul 2026 15:47:48 |
+| **Author** | lglen <lglen@gmail.com> |
+| **Lines** | +8 / −8 |
+| **Files** | `README.md`, `package.json` |
+
+---
+
+---
+
+## 4c98bc3 — fix: fix test path
+
+| Field | Value |
+|-------|-------|
+| **Hash** | `4c98bc30e20d797eb9c9b27510d2c068d9b5a845` |
+| **Date** | Thu, 23 Jul 2026 15:42:17 |
+| **Author** | lglen <lglen@gmail.com> |
+| **Lines** | +6 / −6 |
+| **Files** | `README.md`, `package.json` |
+
+---
+
+---
+
+## fd3d156 — chore: generate new changelog
+
+| Field | Value |
+|-------|-------|
+| **Hash** | `fd3d156bef1f8cd3928661549cfc1c3148bbf31c` |
+| **Date** | Thu, 23 Jul 2026 15:36:49 |
+| **Author** | lglen <lglen@gmail.com> |
+| **Lines** | +114 / −2 |
+| **Files** | `CHANGELOG.md` |
+
+---
+
+---
 
 ## 9acf098 — feat: add new flags for -d default output, --all for including all flags, and --no-email for removing emails
 
@@ -13,7 +113,6 @@ From commit `c406c3935f8429db809edd1262230be3e132303d` (2026-07-23 06:07:52 -070
 | **Author** | lglen <lglen@gmail.com> |
 | **Lines** | +34 / −9 |
 | **Files** | `README.md`, `bin/awk-changelog.js`, `src/changelog-pr.js`, `src/changelog.js` |
-| **Refs** | HEAD -> main, origin/main, origin/HEAD |
 
 ---
 
