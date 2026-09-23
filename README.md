@@ -6,7 +6,7 @@ Lightning-fast changelog generator from git history. Supports PR descriptions vi
 
 - **Extremely fast** — Uses `git log --numstat` in a single pass then pipe to awk
 - **Markdown output** — Clean, readable changelogs with commit stats (files changed, lines added/removed)
-- **PR descriptions** — Optional integration with GitHub CLI to include pull request descriptions on merge commits
+- **PR descriptions** — Optional integration with GitHub CLI to include pull request descriptions on merge, squash, and rebase commits
 - **CLI + API** — Use as a command-line tool or dev dependency
 - **Zero setup required** — Use directly through npx, or 'awkch -d' as a dev dependency/global install
 
@@ -77,6 +77,14 @@ awkch -o CHANGELOG.md
 
 Requires the [GitHub CLI](https://cli.github.com/) (`gh`) installed and authenticated.
 
+Works with every merge strategy:
+
+- **Merge commits** and **squash merges** are matched through the PR's merge
+  commit (and the `(#N)` marker GitHub adds to the title).
+- **Rebase merges** are matched through the GitHub REST API, one request per
+  commit that isn't already matched. Large histories with many rebased commits
+  will therefore make more API calls.
+
 ```bash
 awkch --pr
 ```
@@ -113,7 +121,7 @@ console.log(result.changelog);
 The original awk-based scripts are preserved in `bash/` for users who prefer them:
 
 - `bash/git-changelog.sh` — Basic changelog using awk
-- `bash/git-changelog-pr.sh` — Changelog with PR descriptions using awk + jq (via bundled `node-jq`) + gh
+- `bash/git-changelog-pr.sh` — Changelog with PR descriptions for merge and squash commits using awk + jq (via bundled `node-jq`) + gh (rebase merges need the Node CLI)
 
 To use them directly:
 
@@ -142,7 +150,7 @@ MIT
 
 From commit `c406c3935f8429db809edd1262230be3e132303d` (2026-07-23 06:07:52 -0700)
 
-**6 commit(s), 1 PR(s) fetched**
+**6 commit(s), 1 PR(s) matched**
 
 ## cd69d7d — Merge pull request #1 from LaishGlenberg:lg/feat/add-changelog
 

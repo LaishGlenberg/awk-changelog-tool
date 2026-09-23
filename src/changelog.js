@@ -97,11 +97,9 @@ export function formatCommit(c) {
     lines.push(`| **Refs** | ${escMd(c.refs)} |`);
   }
 
-  if (c.isMerge) {
-    const prNum = extractPRNumber(c.title, c.body);
-    if (prNum) {
-      lines.push(`| **Pull Request** | #${prNum} |`);
-    }
+  const prNum = c.prNumber || (c.isMerge ? extractPRNumber(c.title, c.body) : null);
+  if (prNum) {
+    lines.push(`| **Pull Request** | #${prNum} |`);
   }
 
   lines.push('');
