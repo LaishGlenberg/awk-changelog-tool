@@ -6,18 +6,20 @@ import { parseGitLog, formatCommit, getFirstCommit } from './changelog.js';
  * @property {number} number
  * @property {string} body
  * @property {{ oid?: string }} [mergeCommit]
+ * @property {string} [state]
+ * @property {string} [mergedAt]
  */
 
 /**
  * Fetch PR data from GitHub via `gh` CLI.
  * Only non-connection fields are requested: adding `commits` makes gh blow
  * GitHub's GraphQL node limit ("up to 1,000,000 possible nodes") even at
- * `--limit 100`, so per-commit association is done lazily instead.
+ * `--limit 100`, so commit association is done per PR instead.
  * @returns {PRData[]}
  */
 function fetchPRs() {
   const raw = execSafe(
-    'gh pr list --state all --limit 1000 --json number,body,mergeCommit',
+    'gh pr list --state all --limit 1000 --json number,body,mergeCommit,state,mergedAt',
     '[]'
   );
 
@@ -61,23 +63,50 @@ export function buildCommitToPR(prs) {
 }
 
 /**
- * Look up the PR that contains a commit via the GitHub REST API. This is the
- * only reliable way to associate rebase-merged commits (their SHAs are
- * rewritten and their titles carry no "(#N)" marker). Results are cached for
- * the run. `{owner}`/`{repo}` are resolved by gh from the current repo.
- * @param {string} sha
- * @returns {string|null}
+ * Fetch the commit messages of a PR. Used for PRs that have no commit on the
+ * current branch (rebase-merged, still open, or a feature branch viewed before
+ * its merge commit lands). Rebase rewrites SHAs but preserves messages, so
+ * messages are what we join on.
+ * @param {number} prNumber
+ * @returns {{ messageHeadline?: string, messageBody?: string }[]}
  */
-const commitPRCache = new Map();
-function lookupPRForCommit(sha) {
-  if (commitPRCache.has(sha)) return commitPRCache.get(sha);
-  const raw = execSafe(
-    `gh api "repos/{owner}/{repo}/commits/${sha}/pulls" --jq '.[0].number'`,
-    ''
-  );
-  const num = /^\d+$/.test(raw) ? raw : null;
-  commitPRCache.set(sha, num);
-  return num;
+function fetchPRCommitMessages(prNumber) {
+  const raw = execSafe(`gh pr view ${prNumber} --json commits`, '{}');
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed.commits) ? parsed.commits : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Normalize a commit message into a join key. git's `%s` / `%b` map to gh's
+ * `messageHeadline` / `messageBody`.
+ * @param {string} headline
+ * @param {string} [body]
+ * @returns {string}
+ */
+export function messageKey(headline, body = '') {
+  return `${String(headline).trim()}\n${String(body).trim()}`;
+}
+
+/**
+ * Map normalized commit message -> PR number. Every commit in a PR is mapped;
+ * because the changelog walks newest-first, the first hit is the top of the
+ * rebased group, which is where the description is attached.
+ * @param {Record<string, { messageHeadline?: string, messageBody?: string }[]>} messagesByPR
+ * @returns {Record<string, string>}
+ */
+export function buildMessageToPR(messagesByPR) {
+  const map = {};
+  for (const [num, messages] of Object.entries(messagesByPR)) {
+    for (const m of messages) {
+      if (!m || !m.messageHeadline) continue;
+      map[messageKey(m.messageHeadline, m.messageBody)] = num;
+    }
+  }
+  return map;
 }
 
 /**
@@ -141,20 +170,34 @@ export function generateChangelogWithPRs(options = {}) {
   const prs = fetchPRs();
   const prLookup = buildPRLookup(prs);
   const commitToPR = buildCommitToPR(prs);
-  // Skip per-commit API lookups when gh returned nothing (offline / no PRs).
-  const canLookup = prs.length > 0;
+
+  // For every PR that has no commit in this branch's history (rebase merges,
+  // open PRs, or a feature branch viewed before its merge commit landed),
+  // fetch its commit messages and join on those. One `gh pr view` per such PR
+  // instead of a `gh api` call per commit.
+  const commitHashes = new Set(commits.map((c) => c.hash));
+  const messagesByPR = {};
+  for (const pr of prs) {
+    if (!pr.number) continue;
+    const mergedOid = pr.mergeCommit && pr.mergeCommit.oid;
+    if (mergedOid && commitHashes.has(mergedOid)) continue;
+    const messages = fetchPRCommitMessages(pr.number);
+    if (messages.length) messagesByPR[String(pr.number)] = messages;
+  }
+  const messageToPR = buildMessageToPR(messagesByPR);
 
   const prsUsed = new Set();
   const sinceDate = getCommitDate(since);
   const body = [];
 
   for (const c of commits) {
-    // Associate a PR with this commit. Squash/rebase merges leave no merge
-    // commit behind, so fall back to the title marker, then the commit API.
+    // Associate a PR with this commit. Squash/merge PRs match by merge commit
+    // SHA or the "(#N)" title marker; rebase/open PRs match by message.
     const prNum =
       commitToPR[c.hash] ||
       extractPRNumber(c.title, c.body) ||
-      (canLookup ? lookupPRForCommit(c.hash) : null);
+      messageToPR[messageKey(c.title, c.body)] ||
+      null;
 
     let showPR = false;
     if (prNum && prLookup[prNum]) {

@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseGitLog, formatCommit } from '../src/changelog.js';
-import { buildCommitToPR } from '../src/changelog-pr.js';
+import { buildCommitToPR, buildMessageToPR, messageKey } from '../src/changelog-pr.js';
 
 describe('parseGitLog', () => {
   it('should parse a single commit with numstat', () => {
@@ -132,5 +132,34 @@ describe('buildCommitToPR', () => {
     ]);
     assert.equal(map.aaa, '1');
     assert.deepEqual(Object.keys(map), ['aaa']);
+  });
+});
+
+describe('messageKey', () => {
+  it('normalizes headline and body whitespace', () => {
+    assert.equal(messageKey('  feat: thing  ', 'body  '), 'feat: thing\nbody');
+    assert.equal(messageKey('fix', undefined), 'fix\n');
+  });
+});
+
+describe('buildMessageToPR', () => {
+  it('maps every commit message of a PR to its number', () => {
+    const map = buildMessageToPR({
+      7: [
+        { messageHeadline: 'feat: first', messageBody: 'a' },
+        { messageHeadline: 'fix: second', messageBody: '' },
+      ],
+    });
+    assert.equal(map['feat: first\na'], '7');
+    assert.equal(map['fix: second\n'], '7');
+  });
+
+  it('ignores entries without a headline and lets later PRs win on collision', () => {
+    const map = buildMessageToPR({
+      1: [{ messageHeadline: 'same', messageBody: '' }],
+      2: [{ messageHeadline: 'same', messageBody: '' }, { messageBody: 'orphan' }],
+    });
+    assert.equal(map['same\n'], '2');
+    assert.equal(Object.keys(map).length, 1);
   });
 });

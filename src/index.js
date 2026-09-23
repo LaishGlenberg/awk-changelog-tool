@@ -5,5 +5,5 @@
  */
 
 export { generateChangelog } from './changelog.js';
-export { generateChangelogWithPRs, buildCommitToPR } from './changelog-pr.js';
+export { generateChangelogWithPRs, buildCommitToPR, buildMessageToPR, messageKey } from './changelog-pr.js';
 export { parseGitLog, formatCommit } from './changelog.js';
