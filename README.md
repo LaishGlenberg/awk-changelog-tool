@@ -64,8 +64,11 @@ awkch 3c06d42
 ```
 
 ```bash
-awkch HEAD~50
+awkch HEAD~49
 ```
+
+`HEAD~49` includes exactly the last 50 commits (when the repository has at
+least 50 commits). The starting ref is inclusive.
 
 Write to a file:
 
@@ -91,6 +94,9 @@ Works with every merge strategy:
 ```bash
 awkch --pr
 ```
+
+See `awkch --help` for command-line examples, including limiting the output to
+recent commits and writing PR descriptions to a file.
 
 ### Options
 
