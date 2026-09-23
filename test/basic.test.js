@@ -209,22 +209,25 @@ describe('fetchPRMessagesForHistory', () => {
 });
 
 describe('PR progress formatting', () => {
-  it('formats durations and a concise progress status', () => {
+  it('formats the requested multi-line status and average PR rate', () => {
     assert.equal(formatDuration(0), '0s');
     assert.equal(formatDuration(65_000), '1m 05s');
     assert.equal(
-      formatPRProgress({ completed: 2, total: 5, elapsedMs: 65_000, averageMs: 30_000, etaMs: 90_000 }),
-      'Fetching PR details: 2/5 | 1m 05s elapsed | avg 30s/PR | ETA 1m 30s',
+      formatPRProgress({ completed: 20, total: 50, elapsedMs: 80_000, etaMs: 40_000 }),
+      'Fetching PR details: 20/50\nTime Remaining:      40s\nElapsed:             1m 20s\nAvg:                 0.25 pr/s',
     );
   });
 
-  it('updates the same terminal line and ends it after the final PR', () => {
+  it('rewrites the four-line terminal block in place', () => {
     const writes = [];
     const stream = { write: (text) => writes.push(text) };
-    writePRProgress({ completed: 1, total: 2, elapsedMs: 1000, averageMs: 1000, etaMs: 1000 }, stream);
-    writePRProgress({ completed: 2, total: 2, elapsedMs: 2000, averageMs: 1000, etaMs: 0 }, stream);
-    assert.equal(writes[0].startsWith('\rFetching PR details: 1/2'), true);
-    assert.equal(writes[1].startsWith('\rFetching PR details: 2/2'), true);
-    assert.equal(writes[2], '\n');
+    writePRProgress({ completed: 0, total: 2, elapsedMs: 0, etaMs: 0 }, stream);
+    writePRProgress({ completed: 1, total: 2, elapsedMs: 1000, etaMs: 1000 }, stream);
+    writePRProgress({ completed: 2, total: 2, elapsedMs: 2000, etaMs: 0 }, stream);
+    const output = writes.join('');
+    assert.equal(output.startsWith('\r\u001b[2KFetching PR details: 0/2\n'), true);
+    assert.equal(output.includes('\u001b[4A\r\u001b[2KFetching PR details: 1/2\n'), true);
+    assert.equal(output.includes('\u001b[4A\r\u001b[2KFetching PR details: 2/2\n'), true);
+    assert.equal(output.endsWith('\n'), true);
   });
 });

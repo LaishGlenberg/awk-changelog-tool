@@ -95,8 +95,8 @@ Works with every merge strategy:
 awkch --pr
 ```
 
-In an interactive terminal, `--pr` shows an in-place progress line while it
-fetches PR details, including elapsed time, average time per PR, and an ETA.
+In an interactive terminal, `--pr` shows an in-place progress display while it
+fetches PR details, including elapsed time, average PRs per second, and an ETA.
 
 See `awkch --help` for command-line examples, including limiting the output to
 recent commits and writing PR descriptions to a file.
