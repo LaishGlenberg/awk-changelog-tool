@@ -81,6 +81,54 @@ function fetchPRCommitMessages(prNumber) {
 }
 
 /**
+ * Fetch commit messages for PRs not already matched by merge commit SHA.
+ * Progress reports include a running average and ETA based on completed PRs.
+ * @param {PRData[]} prs
+ * @param {Set<string>} commitHashes
+ * @param {{ onProgress?: (progress: object) => void, fetchMessages?: (number: number) => object[], now?: () => number }} [options]
+ * @returns {Record<string, object[]>}
+ */
+export function fetchPRMessagesForHistory(prs, commitHashes, options = {}) {
+  const fetchMessages = options.fetchMessages || fetchPRCommitMessages;
+  const now = options.now || Date.now;
+  const candidates = prs.filter((pr) => {
+    if (!pr.number) return false;
+    const mergedOid = pr.mergeCommit && pr.mergeCommit.oid;
+    return !(mergedOid && commitHashes.has(mergedOid));
+  });
+  const messagesByPR = {};
+  const total = candidates.length;
+  const overallStart = now();
+  let completed = 0;
+  let totalDurationMs = 0;
+
+  const report = (elapsedMs, lastDurationMs = 0) => {
+    const averageMs = completed ? totalDurationMs / completed : 0;
+    options.onProgress?.({
+      completed,
+      total,
+      elapsedMs,
+      averageMs,
+      etaMs: averageMs * (total - completed),
+      lastDurationMs,
+    });
+  };
+
+  if (total) report(0);
+  for (const pr of candidates) {
+    const requestStart = now();
+    const messages = fetchMessages(pr.number);
+    const durationMs = Math.max(0, now() - requestStart);
+    completed++;
+    totalDurationMs += durationMs;
+    if (messages.length) messagesByPR[String(pr.number)] = messages;
+    report(Math.max(0, now() - overallStart), durationMs);
+  }
+
+  return messagesByPR;
+}
+
+/**
  * Normalize a commit message into a join key. git's `%s` / `%b` map to gh's
  * `messageHeadline` / `messageBody`.
  * @param {string} headline
@@ -138,6 +186,7 @@ function getCommitDate(ref) {
  *
  * @param {object} [options]
  * @param {string} [options.since] - Starting ref (commit-ish)
+ * @param {(progress: { completed: number, total: number, elapsedMs: number, averageMs: number, etaMs: number, lastDurationMs: number }) => void} [options.onProgress] - Called as PR details are fetched.
  * @returns {{ changelog: string, prCount: number }}
  */
 export function generateChangelogWithPRs(options = {}) {
@@ -176,14 +225,9 @@ export function generateChangelogWithPRs(options = {}) {
   // fetch its commit messages and join on those. One `gh pr view` per such PR
   // instead of a `gh api` call per commit.
   const commitHashes = new Set(commits.map((c) => c.hash));
-  const messagesByPR = {};
-  for (const pr of prs) {
-    if (!pr.number) continue;
-    const mergedOid = pr.mergeCommit && pr.mergeCommit.oid;
-    if (mergedOid && commitHashes.has(mergedOid)) continue;
-    const messages = fetchPRCommitMessages(pr.number);
-    if (messages.length) messagesByPR[String(pr.number)] = messages;
-  }
+  const messagesByPR = fetchPRMessagesForHistory(prs, commitHashes, {
+    onProgress: options.onProgress,
+  });
   const messageToPR = buildMessageToPR(messagesByPR);
 
   const prsUsed = new Set();

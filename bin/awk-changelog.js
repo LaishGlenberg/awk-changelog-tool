@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { Command } from 'commander';
 import { generateChangelog } from '../src/changelog.js';
 import { generateChangelogWithPRs } from '../src/changelog-pr.js';
+import { writePRProgress } from '../src/pr-progress.js';
 import { readFile } from 'node:fs/promises';
 
 const pkg = JSON.parse(
@@ -50,7 +51,14 @@ Examples:
     // Delegate based on --pr flag
     if (options.pr) {
       try {
-        const result = generateChangelogWithPRs({ since, noEmail: options.email === false });
+        const onProgress = process.stderr.isTTY
+          ? writePRProgress
+          : undefined;
+        const result = generateChangelogWithPRs({
+          since,
+          noEmail: options.email === false,
+          onProgress,
+        });
         if (options.output) {
           writeFileSync(resolve(options.output), result.changelog, 'utf-8');
           console.error(`✅ Changelog written to ${options.output}`);

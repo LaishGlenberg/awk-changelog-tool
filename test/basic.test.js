@@ -1,7 +1,13 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseGitLog, formatCommit } from '../src/changelog.js';
-import { buildCommitToPR, buildMessageToPR, messageKey } from '../src/changelog-pr.js';
+import {
+  buildCommitToPR,
+  buildMessageToPR,
+  fetchPRMessagesForHistory,
+  messageKey,
+} from '../src/changelog-pr.js';
+import { formatDuration, formatPRProgress, writePRProgress } from '../src/pr-progress.js';
 
 describe('parseGitLog', () => {
   it('should parse a single commit with numstat', () => {
@@ -161,5 +167,64 @@ describe('buildMessageToPR', () => {
     });
     assert.equal(map['same\n'], '2');
     assert.equal(Object.keys(map).length, 1);
+  });
+});
+
+describe('fetchPRMessagesForHistory', () => {
+  it('reports progress and estimates remaining time from completed PR fetches', () => {
+    const times = [0, 0, 1000, 1000, 1000, 4000, 4000];
+    const progress = [];
+    const result = fetchPRMessagesForHistory(
+      [
+        { number: 1, mergeCommit: { oid: 'in-history' } },
+        { number: 2 },
+        { number: 3, mergeCommit: null },
+      ],
+      new Set(['in-history']),
+      {
+        fetchMessages: (number) => [{ messageHeadline: `commit ${number}` }],
+        onProgress: (status) => progress.push(status),
+        now: () => times.shift(),
+      },
+    );
+
+    assert.deepEqual(Object.keys(result), ['2', '3']);
+    assert.deepEqual(progress, [
+      { completed: 0, total: 2, elapsedMs: 0, averageMs: 0, etaMs: 0, lastDurationMs: 0 },
+      { completed: 1, total: 2, elapsedMs: 1000, averageMs: 1000, etaMs: 1000, lastDurationMs: 1000 },
+      { completed: 2, total: 2, elapsedMs: 4000, averageMs: 2000, etaMs: 0, lastDurationMs: 3000 },
+    ]);
+  });
+
+  it('does not report progress when there are no PRs to fetch', () => {
+    const progress = [];
+    const result = fetchPRMessagesForHistory(
+      [{ number: 1, mergeCommit: { oid: 'in-history' } }],
+      new Set(['in-history']),
+      { onProgress: (status) => progress.push(status), fetchMessages: () => [] },
+    );
+    assert.deepEqual(result, {});
+    assert.deepEqual(progress, []);
+  });
+});
+
+describe('PR progress formatting', () => {
+  it('formats durations and a concise progress status', () => {
+    assert.equal(formatDuration(0), '0s');
+    assert.equal(formatDuration(65_000), '1m 05s');
+    assert.equal(
+      formatPRProgress({ completed: 2, total: 5, elapsedMs: 65_000, averageMs: 30_000, etaMs: 90_000 }),
+      'Fetching PR details: 2/5 | 1m 05s elapsed | avg 30s/PR | ETA 1m 30s',
+    );
+  });
+
+  it('updates the same terminal line and ends it after the final PR', () => {
+    const writes = [];
+    const stream = { write: (text) => writes.push(text) };
+    writePRProgress({ completed: 1, total: 2, elapsedMs: 1000, averageMs: 1000, etaMs: 1000 }, stream);
+    writePRProgress({ completed: 2, total: 2, elapsedMs: 2000, averageMs: 1000, etaMs: 0 }, stream);
+    assert.equal(writes[0].startsWith('\rFetching PR details: 1/2'), true);
+    assert.equal(writes[1].startsWith('\rFetching PR details: 2/2'), true);
+    assert.equal(writes[2], '\n');
   });
 });
