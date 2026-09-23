@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseGitLog, formatCommit } from '../src/changelog.js';
+import { buildCommitToPR } from '../src/changelog-pr.js';
 
 describe('parseGitLog', () => {
   it('should parse a single commit with numstat', () => {
@@ -99,5 +100,37 @@ describe('formatCommit', () => {
     const output = formatCommit(commit);
     assert.ok(output.includes('### Commit Message'));
     assert.ok(output.includes('This is the commit body'));
+  });
+
+  it('should include the PR row for a squash commit with a known PR number', () => {
+    const commit = {
+      hash: 'abc',
+      shortHash: 'abc',
+      title: 'feat: thing (#7)',
+      date: '2025-01-01',
+      author: 'John',
+      body: '',
+      refs: '',
+      parents: 'p',
+      added: 0,
+      removed: 0,
+      files: [],
+      isMerge: false,
+      prNumber: '7',
+    };
+
+    const output = formatCommit(commit);
+    assert.ok(output.includes('| **Pull Request** | #7 |'));
+  });
+});
+
+describe('buildCommitToPR', () => {
+  it('maps the mergeCommit oid to the PR number (merge + squash)', () => {
+    const map = buildCommitToPR([
+      { number: 1, body: 'a', mergeCommit: { oid: 'aaa' } },
+      { number: 2, body: 'b', mergeCommit: null },
+    ]);
+    assert.equal(map.aaa, '1');
+    assert.deepEqual(Object.keys(map), ['aaa']);
   });
 });

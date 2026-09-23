@@ -150,7 +150,7 @@ echo "🔍 Generating changelog..." >&2
     print "| **Lines** | +" added " / −" removed " |"
     print "| **Files** | " files " |"
     if (refs != "")                  print "| **Refs** | " refs " |"
-    if (is_merge && pr_number != "") print "| **Pull Request** | #" pr_number " |"
+    if (pr_number != "") print "| **Pull Request** | #" pr_number " |"
     print ""
 
     # Commit body (from git)
@@ -161,8 +161,9 @@ echo "🔍 Generating changelog..." >&2
       print ""
     }
 
-    # For merge commits: show the PR description/body from GitHub
-    if (is_merge && pr_number != "" && pr_number in pr_desc) {
+    # Show the PR description for merge commits and squash merges (the "(#N)"
+    # marker in the title). Rebase merges are only supported by the Node CLI.
+    if (pr_number != "" && pr_number in pr_desc) {
       print "### Pull Request Description"
       print ""
       print "```"
