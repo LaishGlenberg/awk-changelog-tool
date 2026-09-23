@@ -81,9 +81,12 @@ Works with every merge strategy:
 
 - **Merge commits** and **squash merges** are matched through the PR's merge
   commit (and the `(#N)` marker GitHub adds to the title).
-- **Rebase merges** are matched through the GitHub REST API, one request per
-  commit that isn't already matched. Large histories with many rebased commits
-  will therefore make more API calls.
+- **Rebase merges** are matched by **commit message + order**: rebase rewrites
+  SHAs but keeps messages, so each PR's `gh pr view --json commits` messages are
+  joined to the branch's commits. One `gh pr view` per PR that isn't already
+  matched by a merge commit (rebase-merged, open, or a feature branch viewed
+  before its merge commit lands). The description is placed above the top commit
+  of the group. Only ambiguity: two PRs sharing an identical commit message.
 
 ```bash
 awkch --pr
