@@ -26,6 +26,14 @@ program
   .option('-n, --no-email', 'Strip email addresses from author names')
   .option('-d, --default', 'Set output to CHANGELOG.md')
   .option('-a, --all', 'Shorthand for --pr --default')
+  .addHelpText('after', `
+Examples:
+  $ awkch                          Generate a changelog from the first commit
+  $ awkch HEAD~49                  Include the last 50 commits
+  $ awkch HEAD~49 --pr             Include PR descriptions for the last 50 commits
+  $ awkch --pr -o CHANGELOG.md     Write a changelog with PR descriptions
+  $ awkch --all                    Include PR descriptions and write CHANGELOG.md
+`)
   .allowExcessArguments(false)
   .action((since, options) => {
     // --all is shorthand for --pr --default
