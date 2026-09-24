@@ -8,6 +8,7 @@ import {
   messageKey,
 } from '../src/changelog-pr.js';
 import { formatDuration, formatPRProgress, writePRProgress } from '../src/pr-progress.js';
+import { mergeIncrementalChangelog } from '../src/incremental.js';
 
 describe('parseGitLog', () => {
   it('should parse a single commit with numstat', () => {
@@ -196,6 +197,26 @@ describe('fetchPRMessagesForHistory', () => {
     ]);
   });
 
+  it('only fetches PR commit details merged after the existing changelog cutoff', () => {
+    const fetched = [];
+    fetchPRMessagesForHistory(
+      [
+        { number: 10, mergedAt: '2025-01-01T00:00:00Z' },
+        { number: 11, mergedAt: '2025-02-01T00:00:00Z' },
+        { number: 12 },
+      ],
+      new Set(),
+      {
+        afterDate: '2025-01-15T00:00:00Z',
+        fetchMessages: (number) => {
+          fetched.push(number);
+          return [];
+        },
+      },
+    );
+    assert.deepEqual(fetched, [11, 12]);
+  });
+
   it('does not report progress when there are no PRs to fetch', () => {
     const progress = [];
     const result = fetchPRMessagesForHistory(
@@ -205,6 +226,22 @@ describe('fetchPRMessagesForHistory', () => {
     );
     assert.deepEqual(result, {});
     assert.deepEqual(progress, []);
+  });
+});
+
+describe('mergeIncrementalChangelog', () => {
+  it('prepends new commits and updates counts while retaining old entries', () => {
+    const old = '# Changelog\n\nFrom commit `root` (date)\n\n**2 commit(s), 1 PR(s) matched**\n\n## old — Existing\n\n---\n';
+    const added = '# Changelog\n\nFrom commit `tip` (date)\n\n**1 commit(s), 1 PR(s) matched**\n\n## new — Added\n\n---\n';
+    const merged = mergeIncrementalChangelog(old, added);
+    assert.match(merged, /\*\*3 commit\(s\), 2 PR\(s\) matched\*\*/);
+    assert.ok(merged.indexOf('## new — Added') < merged.indexOf('## old — Existing'));
+    assert.match(merged, /From commit `root`/);
+  });
+
+  it('leaves the changelog unchanged when there are no new entries', () => {
+    const old = '# Changelog\n\n**1 commit(s), 0 PR(s) matched**\n\n## old — Existing\n';
+    assert.equal(mergeIncrementalChangelog(old, '# Changelog\n\nNo commits found.\n'), old);
   });
 });
 

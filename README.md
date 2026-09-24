@@ -99,6 +99,11 @@ awkch --pr
 
 In an interactive terminal, `--pr` shows an in-place progress display while it
 fetches PR details, including elapsed time, average PRs per second, and an ETA.
+When writing to an existing awkch changelog (for example, `awkch --all`), the
+CLI uses its newest recorded commit as the checkpoint, adds only newer commits,
+and limits PR detail lookups to PRs merged since that checkpoint. Existing
+entries are retained. To rebuild the full changelog, remove or rename the output
+file first, or pass an explicit starting ref.
 
 See `awkch --help` for command-line examples, including limiting the output to
 recent commits and writing PR descriptions to a file.

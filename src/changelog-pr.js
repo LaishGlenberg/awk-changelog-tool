@@ -85,7 +85,7 @@ function fetchPRCommitMessages(prNumber) {
  * Progress reports include a running average and ETA based on completed PRs.
  * @param {PRData[]} prs
  * @param {Set<string>} commitHashes
- * @param {{ onProgress?: (progress: object) => void, fetchMessages?: (number: number) => object[], now?: () => number }} [options]
+ * @param {{ onProgress?: (progress: object) => void, fetchMessages?: (number: number) => object[], now?: () => number, afterDate?: string }} [options]
  * @returns {Record<string, object[]>}
  */
 export function fetchPRMessagesForHistory(prs, commitHashes, options = {}) {
@@ -94,7 +94,11 @@ export function fetchPRMessagesForHistory(prs, commitHashes, options = {}) {
   const candidates = prs.filter((pr) => {
     if (!pr.number) return false;
     const mergedOid = pr.mergeCommit && pr.mergeCommit.oid;
-    return !(mergedOid && commitHashes.has(mergedOid));
+    if (mergedOid && commitHashes.has(mergedOid)) return false;
+    if (options.afterDate && pr.mergedAt && Date.parse(pr.mergedAt) < Date.parse(options.afterDate)) {
+      return false;
+    }
+    return true;
   });
   const messagesByPR = {};
   const total = candidates.length;
@@ -121,7 +125,7 @@ export function fetchPRMessagesForHistory(prs, commitHashes, options = {}) {
     const durationMs = Math.max(0, now() - requestStart);
     completed++;
     totalDurationMs += durationMs;
-    if (messages.length) messagesByPR[String(pr.number)] = messages;
+    messagesByPR[String(pr.number)] = messages;
     report(Math.max(0, now() - overallStart), durationMs);
   }
 
@@ -186,6 +190,8 @@ function getCommitDate(ref) {
  *
  * @param {object} [options]
  * @param {string} [options.since] - Starting ref (commit-ish)
+ * @param {boolean} [options.excludeSince] - Exclude the starting ref for incremental runs
+ * @param {string} [options.afterDate] - Avoid PR detail lookups for PRs merged before this date
  * @param {(progress: { completed: number, total: number, elapsedMs: number, averageMs: number, etaMs: number, lastDurationMs: number }) => void} [options.onProgress] - Called as PR details are fetched.
  * @returns {{ changelog: string, prCount: number }}
  */
@@ -197,7 +203,9 @@ export function generateChangelogWithPRs(options = {}) {
 
   // Use a range that includes `since` itself
   const parent = execSafe(`git rev-parse --verify "${since}^"`);
-  const range = parent ? `"${since}^..HEAD"` : `--root HEAD`;
+  const range = options.excludeSince
+    ? `"${since}..HEAD"`
+    : parent ? `"${since}^..HEAD"` : `--root HEAD`;
 
   const raw = execSafe(
     `git log --numstat --format="${fmt}" ${range}`,
@@ -227,6 +235,7 @@ export function generateChangelogWithPRs(options = {}) {
   const commitHashes = new Set(commits.map((c) => c.hash));
   const messagesByPR = fetchPRMessagesForHistory(prs, commitHashes, {
     onProgress: options.onProgress,
+    afterDate: options.afterDate,
   });
   const messageToPR = buildMessageToPR(messagesByPR);
 
