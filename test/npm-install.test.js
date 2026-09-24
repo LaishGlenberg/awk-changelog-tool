@@ -71,6 +71,7 @@ test(
       assert.equal(help.status, 0, help.stderr);
       assert.match(help.stdout, /Usage: awkch/);
       assert.match(help.stdout, /Examples:/);
+      assert.match(help.stdout, /-f, --fresh/);
 
       // Run the installed CLI from a clean git repository, not the source tree.
       await mkdir(fixtureDir, { recursive: true });

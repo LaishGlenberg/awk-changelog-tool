@@ -102,8 +102,9 @@ fetches PR details, including elapsed time, average PRs per second, and an ETA.
 When writing to an existing awkch changelog (for example, `awkch --all`), the
 CLI uses its newest recorded commit as the checkpoint, adds only newer commits,
 and limits PR detail lookups to PRs merged since that checkpoint. Existing
-entries are retained. To rebuild the full changelog, remove or rename the output
-file first, or pass an explicit starting ref.
+entries are retained. Pass `--fresh` to disable incremental mode and rebuild
+the full changelog in place, or pass an explicit starting ref. You can also
+remove or rename the output file to force a full rebuild.
 
 See `awkch --help` for command-line examples, including limiting the output to
 recent commits and writing PR descriptions to a file.
@@ -118,6 +119,7 @@ recent commits and writing PR descriptions to a file.
 | `-p, --pr` | Include PR descriptions (requires `gh` CLI) |
 | `-d, --default` | Set output file to `CHANGELOG.md` |
 | `-a, --all` | Shorthand for `--pr --default` |
+| `-f, --fresh` | Disable incremental mode and rewrite the changelog from scratch |
 | `-n, --no-email` | Strip email addresses from author names |
 
 ## Programmatic API available through `npm install`

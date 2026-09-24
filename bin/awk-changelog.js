@@ -35,6 +35,7 @@ program
   .option('-n, --no-email', 'Strip email addresses from author names')
   .option('-d, --default', 'Set output to CHANGELOG.md')
   .option('-a, --all', 'Shorthand for --pr --default')
+  .option('-f, --fresh', 'Disable incremental mode and rewrite the changelog from scratch')
   .addHelpText('after', `
 Examples:
   $ awkch                          Generate a changelog from the first commit
@@ -42,6 +43,7 @@ Examples:
   $ awkch HEAD~49 --pr             Include PR descriptions for the last 50 commits
   $ awkch --pr -o CHANGELOG.md     Write a changelog with PR descriptions
   $ awkch --all                    Include PR descriptions and write CHANGELOG.md
+  $ awkch --all --fresh            Rewrite CHANGELOG.md from the first commit
 `)
   .allowExcessArguments(false)
   .action((since, options) => {
@@ -65,7 +67,7 @@ Examples:
         const outputPath = options.output && resolve(options.output);
         let existing = '';
         let incrementalOptions = {};
-        if (!since && outputPath && existsSync(outputPath)) {
+        if (!options.fresh && !since && outputPath && existsSync(outputPath)) {
           existing = readFileSync(outputPath, 'utf-8');
           const lastCommit = getLastRecordedCommit(existing);
           if (lastCommit) {
