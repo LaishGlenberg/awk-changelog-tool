@@ -1,4 +1,4 @@
-import { exec, execSafe, formatDate, escMd, ensureGitRepo } from './utils.js';
+import { execSafe, formatDate, escMd, ensureGitRepo } from './utils.js';
 
 /**
  * Parse a single git log --numstat entry into a structured commit object.
