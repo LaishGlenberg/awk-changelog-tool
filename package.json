@@ -32,6 +32,7 @@
   "scripts": {
     "test": "node --test test/*.test.js",
     "test:package": "node --test test/npm-install.test.js",
+    "test:coverage": "node --test --experimental-test-coverage --test-coverage-lines=90 --test-coverage-branches=80 --test-coverage-functions=85 test/basic.test.js test/generate.test.js test/utils.test.js",
     "prepublishOnly": "npm test",
     "changelog": "awkch --all && node --input-type=module -e \"import{readFileSync,writeFileSync}from'fs';let f='CHANGELOG.md';let c=readFileSync(f,'utf-8');c=c.replace(/^(\\| \\*\\*Author\\*\\* \\| ).*( \\|)$/gm,(_,a,b)=>a+'lglen <lglen@gmail.com>'+b);writeFileSync(f,c)\"",
     "testlog": "awkch --pr -o TEST_CHANGELOG.md",

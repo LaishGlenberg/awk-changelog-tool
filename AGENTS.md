@@ -19,6 +19,7 @@ and a small programmatic API are supported.
 ```bash
 npm test              # node --test test/*.test.js (unit + package integration)
 npm run test:package  # only the pack/install integration test (needs npm + registry)
+npm run test:coverage # unit suites with coverage + thresholds (no gh/network)
 npm run testlog       # write TEST_CHANGELOG.md with PR descriptions
 npm run lint          # oxlint --deny-warnings src test bin (config: .oxlintrc.json)
 node ./bin/awk-changelog.js --help
@@ -39,7 +40,9 @@ for `--pr`; `jq` is bundled through `node-jq`, so no system install is required.
 | `src/pr-progress.js` | TTY progress display while PR details are fetched |
 | `src/utils.js` | `exec`/`execSafe`, git-repo check, markdown escaping, date formatting |
 | `bash/` | Original awk implementations, kept for users who prefer them |
-| `test/basic.test.js` | Unit tests (pure functions, injected deps) |
+| `test/basic.test.js` | Unit tests for parsing, formatting, PR matching, incremental merge, progress |
+| `test/generate.test.js` | Unit tests for `generateChangelog`/`generateChangelogWithPRs` via injected git/PR runners |
+| `test/utils.test.js` | Unit tests for `exec`/`execSafe`/`commandExists`/`escMd`/`formatDate`/`ensureGitRepo` |
 | `test/npm-install.test.js` | Integration: pack tarball, install, smoke-test CLI + API |
 
 ## Core data flow
@@ -84,7 +87,9 @@ generateChangelogWithPRs(options) // -> { changelog: string, prCount: number }
 
 Also exported: `parseGitLog`, `formatCommit`, `buildCommitToPR`,
 `buildMessageToPR`, `messageKey`. Keep these names/shapes stable — they are the
-package's public surface and the README documents them.
+package's public surface and the README documents them. The two generators also
+accept test-only injection points (`run`, `prs`, `fetchMessages`, `noEmail`) that
+default to the real git/gh implementations.
 
 ## Output contract
 
@@ -128,10 +133,19 @@ append entries and bump the summary counts. This is why an explicit ref or
 
 - `node:test` + `node:assert/strict`; **no mocking library**. Prefer pure
   functions and inject anything external through options:
+  - `generateChangelog({ run })` / `generateChangelogWithPRs({ run, prs, fetchMessages })`
   - `fetchPRMessagesForHistory({ fetchMessages, now, onProgress, afterDate })`
   - `writePRProgress(progress, stream)` (stream defaults to `process.stderr`)
-- Unit tests live in `test/basic.test.js`; add cases there for parsing, formatting,
-  matching, incremental merges, and progress output.
+- **Unit tests must be hermetic.** Never let a test reach `gh` or the network:
+  inject `fetchMessages: () => []` (the `test/generate.test.js` wrapper does this
+  by default) and a fake `run` for git. A test that takes ~1s is usually a live
+  `gh` call slipping through.
+- Unit suites: `test/basic.test.js`, `test/generate.test.js`,
+  `test/utils.test.js`. Add cases for parsing, formatting, matching, incremental
+  merges, and progress output.
+- `npm run test:coverage` enforces line ≥ 90 / branch ≥ 80 / function ≥ 85 and
+  is run in CI. The only intentionally uncovered code is the real `gh` I/O
+  (`fetchPRs`, `fetchPRCommitMessages`) — leave that to integration.
 - `test/npm-install.test.js` runs `npm pack`, asserts the tarball's `files` list
   (e.g. `bin/awk-changelog.js`, `src/index.js`, `src/pr-progress.js`), installs
   with `--ignore-scripts`, then smoke-tests the installed CLI and API. It handles
@@ -152,9 +166,9 @@ append entries and bump the summary counts. This is why an explicit ref or
 
 - `package.json` `files` is a whitelist (`bin/`, `src/`, `bash/`, README, LICENSE).
   A new top-level directory must be added there to ship.
-- CI (`.github/workflows/ci.yml`) runs `npm test` and `npm run lint` on pushes
-  and PRs to `main`, on Node 24. Oxlint config lives in `.oxlintrc.json` — note
-  oxlint only auto-discovers that exact filename.
+- CI (`.github/workflows/ci.yml`) runs `npm test`, `npm run test:coverage`, and
+  `npm run lint` on pushes and PRs to `main`, on Node 24. Oxlint config lives in
+  `.oxlintrc.json` — note oxlint only auto-discovers that exact filename.
 - Releases are automated: bump `version` in `package.json` on `main`;
   `.github/workflows/release.yml` detects the change, tags `vX.Y.Z`, and creates a
   GitHub release with generated notes.

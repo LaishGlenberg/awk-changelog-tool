@@ -136,18 +136,19 @@ function extractPRNumber(title, body) {
  * @param {string} ref
  * @returns {string}
  */
-function getCommitDate(ref) {
-  return execSafe(`git log -1 --format="%ai" "${ref}"`, '?');
+function getCommitDate(ref, run = execSafe) {
+  return run(`git log -1 --format="%ai" "${ref}"`, '?');
 }
 
 /**
  * Build a git log range string that includes `since`.
  * If `since` is the root commit (no parent), use `--root` to include everything.
  * @param {string} since
+ * @param {(cmd: string, fallback?: string) => string} [run]
  * @returns {string}
  */
-function buildRange(since) {
-  const parent = execSafe(`git rev-parse --verify "${since}^"`);
+function buildRange(since, run = execSafe) {
+  const parent = run(`git rev-parse --verify "${since}^"`);
   if (parent) {
     return `"${since}^..HEAD"`;
   }
@@ -159,18 +160,21 @@ function buildRange(since) {
  *
  * @param {object} [options]
  * @param {string} [options.since] - Starting ref (commit-ish)
+ * @param {boolean} [options.noEmail] - Strip email addresses from author names
+ * @param {(cmd: string, fallback?: string) => string} [options.run] - Git command runner (injectable for tests)
  * @returns {string} The generated changelog markdown
  */
 export function generateChangelog(options = {}) {
   ensureGitRepo();
 
-  const since = options.since || getFirstCommit();
+  const run = options.run || execSafe;
+  const since = options.since || getFirstCommit(run);
   const fmt = '%H|%h|%s|%ai|%an <%ae>|%b|%P|%D';
 
   // Use a range that includes `since` itself
-  const range = buildRange(since);
+  const range = buildRange(since, run);
 
-  const raw = execSafe(
+  const raw = run(
     `git log --numstat --format="${fmt}" ${range}`,
     ''
   );
@@ -187,7 +191,7 @@ export function generateChangelog(options = {}) {
     }
   }
 
-  const sinceDate = getCommitDate(since);
+  const sinceDate = getCommitDate(since, run);
 
   const lines = [];
   lines.push('# Changelog');
@@ -206,9 +210,10 @@ export function generateChangelog(options = {}) {
 
 /**
  * Get the first commit hash of the repository.
+ * @param {(cmd: string, fallback?: string) => string} [run]
  * @returns {string}
  */
-export function getFirstCommit() {
-  const root = execSafe('git rev-list --max-parents=0 HEAD');
+export function getFirstCommit(run = execSafe) {
+  const root = run('git rev-list --max-parents=0 HEAD');
   return root.split('\n')[0] || 'HEAD';
 }

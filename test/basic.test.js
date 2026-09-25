@@ -62,6 +62,20 @@ describe('parseGitLog', () => {
     const commits = parseGitLog('');
     assert.deepEqual(commits, []);
   });
+
+  it('should skip binary numstat lines but keep textual ones', () => {
+    const raw = [
+      'abc123def4567890123456789012345678901234|abc1234|Add assets|2025-01-15 10:00:00 +0000|John <john@test.com>||p1|',
+      '-\t-\tlogo.png',
+      '3\t0\tsrc/app.js',
+    ].join('\n');
+
+    const commits = parseGitLog(raw);
+    assert.equal(commits.length, 1);
+    assert.equal(commits[0].added, 3);
+    assert.equal(commits[0].removed, 0);
+    assert.deepEqual(commits[0].files, ['src/app.js']);
+  });
 });
 
 describe('formatCommit', () => {
@@ -128,6 +142,68 @@ describe('formatCommit', () => {
 
     const output = formatCommit(commit);
     assert.ok(output.includes('| **Pull Request** | #7 |'));
+  });
+
+  it('should escape markdown metacharacters in the author and file names', () => {
+    const commit = {
+      hash: 'abc',
+      shortHash: 'abc',
+      title: 'Fix',
+      date: '2025-01-01',
+      author: 'A_B <a@test.com>',
+      body: '',
+      refs: '',
+      parents: 'p',
+      added: 1,
+      removed: 0,
+      files: ['a|b.txt'],
+      isMerge: false,
+    };
+
+    const output = formatCommit(commit);
+    assert.ok(output.includes('A\\_B'));
+    assert.ok(output.includes('a\\|b.txt'));
+  });
+
+  it('should derive the PR row from a merge commit body', () => {
+    const commit = {
+      hash: 'abc',
+      shortHash: 'abc',
+      title: 'Merge branch x',
+      date: '2025-01-01',
+      author: 'John',
+      body: 'Merge pull request #12 from x/y',
+      refs: '',
+      parents: 'p1 p2',
+      added: 0,
+      removed: 0,
+      files: [],
+      isMerge: true,
+    };
+
+    const output = formatCommit(commit);
+    assert.ok(output.includes('| **Pull Request** | #12 |'));
+  });
+
+  it('should omit optional Refs and render an empty Files cell', () => {
+    const commit = {
+      hash: 'abc',
+      shortHash: 'abc',
+      title: 'Tidy up',
+      date: '2025-01-01',
+      author: 'John',
+      body: '',
+      refs: '',
+      parents: 'p',
+      added: 0,
+      removed: 0,
+      files: [],
+      isMerge: false,
+    };
+
+    const output = formatCommit(commit);
+    assert.ok(!output.includes('**Refs**'));
+    assert.ok(output.includes('| **Files** |  |'));
   });
 });
 
@@ -242,6 +318,18 @@ describe('mergeIncrementalChangelog', () => {
   it('leaves the changelog unchanged when there are no new entries', () => {
     const old = '# Changelog\n\n**1 commit(s), 0 PR(s) matched**\n\n## old — Existing\n';
     assert.equal(mergeIncrementalChangelog(old, '# Changelog\n\nNo commits found.\n'), old);
+  });
+
+  it('returns the existing changelog when the generated summary is missing', () => {
+    const old = '# Changelog\n\n**1 commit(s), 0 PR(s) matched**\n\n## old — Existing\n';
+    const generated = '# Changelog\n\n## new — Added\n';
+    assert.equal(mergeIncrementalChangelog(old, generated), old);
+  });
+
+  it('returns the existing changelog when the existing summary is missing', () => {
+    const old = '# Changelog\n\n## old — Existing\n';
+    const generated = '# Changelog\n\n**1 commit(s), 0 PR(s) matched**\n\n## new — Added\n';
+    assert.equal(mergeIncrementalChangelog(old, generated), old);
   });
 });
 

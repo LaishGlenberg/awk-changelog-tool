@@ -180,8 +180,8 @@ function extractPRNumber(title, body) {
  * @param {string} ref
  * @returns {string}
  */
-function getCommitDate(ref) {
-  return execSafe(`git log -1 --format="%ai" "${ref}"`, '?');
+function getCommitDate(ref, run = execSafe) {
+  return run(`git log -1 --format="%ai" "${ref}"`, '?');
 }
 
 /**
@@ -192,22 +192,27 @@ function getCommitDate(ref) {
  * @param {string} [options.since] - Starting ref (commit-ish)
  * @param {boolean} [options.excludeSince] - Exclude the starting ref for incremental runs
  * @param {string} [options.afterDate] - Avoid PR detail lookups for PRs merged before this date
+ * @param {boolean} [options.noEmail] - Strip email addresses from author names
+ * @param {PRData[]} [options.prs] - Pre-fetched PR list (injectable for tests)
+ * @param {(cmd: string, fallback?: string) => string} [options.run] - Git command runner (injectable for tests)
+ * @param {(number: number) => object[]} [options.fetchMessages] - Per-PR commit-message fetcher (injectable for tests)
  * @param {(progress: { completed: number, total: number, elapsedMs: number, averageMs: number, etaMs: number, lastDurationMs: number }) => void} [options.onProgress] - Called as PR details are fetched.
  * @returns {{ changelog: string, prCount: number }}
  */
 export function generateChangelogWithPRs(options = {}) {
   ensureGitRepo();
 
-  const since = options.since || getFirstCommit();
+  const run = options.run || execSafe;
+  const since = options.since || getFirstCommit(run);
   const fmt = '%H|%h|%s|%ai|%an <%ae>|%b|%P|%D';
 
   // Use a range that includes `since` itself
-  const parent = execSafe(`git rev-parse --verify "${since}^"`);
+  const parent = run(`git rev-parse --verify "${since}^"`);
   const range = options.excludeSince
     ? `"${since}..HEAD"`
     : parent ? `"${since}^..HEAD"` : `--root HEAD`;
 
-  const raw = execSafe(
+  const raw = run(
     `git log --numstat --format="${fmt}" ${range}`,
     ''
   );
@@ -224,7 +229,7 @@ export function generateChangelogWithPRs(options = {}) {
     }
   }
 
-  const prs = fetchPRs();
+  const prs = options.prs || fetchPRs();
   const prLookup = buildPRLookup(prs);
   const commitToPR = buildCommitToPR(prs);
 
@@ -236,11 +241,12 @@ export function generateChangelogWithPRs(options = {}) {
   const messagesByPR = fetchPRMessagesForHistory(prs, commitHashes, {
     onProgress: options.onProgress,
     afterDate: options.afterDate,
+    fetchMessages: options.fetchMessages,
   });
   const messageToPR = buildMessageToPR(messagesByPR);
 
   const prsUsed = new Set();
-  const sinceDate = getCommitDate(since);
+  const sinceDate = getCommitDate(since, run);
   const body = [];
 
   for (const c of commits) {

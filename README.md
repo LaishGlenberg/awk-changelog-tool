@@ -165,7 +165,8 @@ Run `npm test` for the unit and package-install integration tests. The package
 integration test packs the distributable tarball, installs it in a temporary
 project, and smoke-tests both the `awkch` CLI and programmatic API. Run only that
 test with `npm run test:package`; it requires npm and access to the package
-registry unless dependencies are already cached.
+registry unless dependencies are already cached. Run `npm run test:coverage` to
+execute the unit suites with line/branch/function coverage thresholds.
 
 ## License
 
