@@ -20,6 +20,7 @@ and a small programmatic API are supported.
 npm test              # node --test test/*.test.js (unit + package integration)
 npm run test:package  # only the pack/install integration test (needs npm + registry)
 npm run testlog       # write TEST_CHANGELOG.md with PR descriptions
+npm run lint          # oxlint --deny-warnings src test bin (config: .oxlintrc.json)
 node ./bin/awk-changelog.js --help
 ```
 
@@ -151,6 +152,9 @@ append entries and bump the summary counts. This is why an explicit ref or
 
 - `package.json` `files` is a whitelist (`bin/`, `src/`, `bash/`, README, LICENSE).
   A new top-level directory must be added there to ship.
+- CI (`.github/workflows/ci.yml`) runs `npm test` and `npm run lint` on pushes
+  and PRs to `main`, on Node 24. Oxlint config lives in `.oxlintrc.json` — note
+  oxlint only auto-discovers that exact filename.
 - Releases are automated: bump `version` in `package.json` on `main`;
   `.github/workflows/release.yml` detects the change, tags `vX.Y.Z`, and creates a
   GitHub release with generated notes.
