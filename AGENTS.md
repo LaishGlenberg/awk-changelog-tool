@@ -169,9 +169,12 @@ append entries and bump the summary counts. This is why an explicit ref or
 - CI (`.github/workflows/ci.yml`) runs `npm test`, `npm run test:coverage`, and
   `npm run lint` on pushes and PRs to `main`, on Node 24. Oxlint config lives in
   `.oxlintrc.json` — note oxlint only auto-discovers that exact filename.
-- Releases are automated: bump `version` in `package.json` on `main`;
-  `.github/workflows/release.yml` detects the change, tags `vX.Y.Z`, and creates a
-  GitHub release with generated notes.
+- Releases are automated by `.github/workflows/release.yml` on every push to
+  `main`: if tag `vX.Y.Z` for the current `package.json` version already exists,
+  the workflow bumps the patch version, commits it back as
+  `chore(release): vX.Y.Z [skip ci]`, tags it, and creates a GitHub release with
+  generated notes; otherwise it releases the committed version as-is. The
+  decision lives in `scripts/release-version.ts` (run directly by Node 24).
 - `prepublishOnly` runs `npm test`.
 
 ## Before finishing
