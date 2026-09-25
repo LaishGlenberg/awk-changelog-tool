@@ -1,6 +1,8 @@
 # @lglen/awk-changelog-tool
 
-[![npm version](https://img.shields.io/npm/v/@lglen/awk-changelog-tool?label=npm&logo=npm&logoColor=red&labelColor=white&color=lightgrey&style=flat-square)](https://www.npmjs.com/package/@lglen/awk-changelog-tool)
+[![npm version](https://img.shields.io/npm/v/@lglen/awk-changelog-tool.svg?logo=npm)](https://www.npmjs.com/package/@lglen/awk-changelog-tool)
+[![Downloads](https://img.shields.io/npm/dm/@lglen/awk-changelog-tool.svg?logo=npm)](https://www.npmjs.com/package/@lglen/awk-changelog-tool)
+[![Build Status](https://github.com/LaishGlenberg/awk-changelog-tool/workflows/CI/badge.svg)](https://github.com/LaishGlenberg/awk-changelog-tool/actions)
 
 Lightning-fast changelog generator from git history. Supports PR descriptions via GitHub CLI.
 
