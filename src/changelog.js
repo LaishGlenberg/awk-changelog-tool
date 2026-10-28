@@ -1,6 +1,19 @@
 import { execSafe, formatDate, escMd, ensureGitRepo } from './utils.js';
 
 /**
+ * `git log` format: NUL-separated records, a `\x1f`-delimited header, and the body in
+ * its own record so a multi-line body cannot swallow the fields after it.
+ */
+export const LOG_FORMAT = '%x00%H%x1f%h%x1f%s%x1f%ai%x1f%an <%ae>%x1f%P%x1f%D%x00%b';
+
+const NUMSTAT_LINE = /^(\d+)\t(\d+)\t/;
+const HEADER_HASH = /^[0-9a-f]{40}$/;
+
+// git's record (NUL) and field (unit) separators, matching LOG_FORMAT.
+const RECORD_SEP = String.fromCharCode(0);
+const FIELD_SEP = String.fromCharCode(31);
+
+/**
  * Parse a single git log --numstat entry into a structured commit object.
  * @typedef {object} Commit
  * @property {string} hash
@@ -24,52 +37,50 @@ import { execSafe, formatDate, escMd, ensureGitRepo } from './utils.js';
  */
 export function parseGitLog(raw) {
   const commits = [];
-  let current = null;
-  const lines = raw.split('\n');
+  const chunks = raw.split(RECORD_SEP);
 
-  for (const line of lines) {
-    // Commit header (40 hex chars)
-    if (/^[a-f0-9]{40}/.test(line)) {
-      if (current) commits.push(current);
+  for (let index = 0; index < chunks.length; index += 1) {
+    const header = chunks[index];
+    if (header[40] !== FIELD_SEP || !HEADER_HASH.test(header.slice(0, 40))) continue;
 
-      const parts = line.split('|');
-      current = {
-        hash: parts[0] || '',
-        shortHash: parts[1] || '',
-        title: parts[2] || '',
-        date: parts[3] || '',
-        author: parts[4] || '',
-        body: parts[5] || '',
-        parents: parts[6] || '',
-        refs: parts[7] || '',
-        added: 0,
-        removed: 0,
-        files: [],
-        isMerge: false,
-      };
+    // The record after a header holds the body, followed by the numstat block.
+    const parts = header.split(FIELD_SEP);
+    const tail = (chunks[index + 1] ?? '').split('\n');
+    index += 1;
 
-      // Clean refs (remove parens)
-      current.refs = current.refs.replace(/^\(|\)$/g, '');
+    const numstatStart = tail.findIndex((line) => NUMSTAT_LINE.test(line));
+    const bodyLines = numstatStart === -1 ? tail : tail.slice(0, numstatStart);
 
-      // Detect merge commit (2+ parents)
-      const parentList = current.parents.split(' ').filter(Boolean);
-      current.isMerge = parentList.length >= 2;
+    const commit = {
+      hash: parts[0] || '',
+      shortHash: parts[1] || '',
+      title: parts[2] || '',
+      date: parts[3] || '',
+      author: parts[4] || '',
+      parents: parts[5] || '',
+      refs: (parts[6] || '').replace(/^\(|\)$/g, ''),
+      body: bodyLines.join('\n').replace(/^\n+/, '').trimEnd(),
+      added: 0,
+      removed: 0,
+      files: [],
+      isMerge: false,
+    };
 
-      continue;
+    for (const line of numstatStart === -1 ? [] : tail.slice(numstatStart)) {
+      if (!NUMSTAT_LINE.test(line)) continue;
+      const [added, removed, ...rest] = line.split('\t');
+      commit.added += parseInt(added || '0', 10);
+      commit.removed += parseInt(removed || '0', 10);
+      const file = rest.join('\t');
+      if (file) commit.files.push(file);
     }
 
-    // Numstat line
-    if (current && /^\d+/.test(line)) {
-      const parts = line.split('\t');
-      current.added += parseInt(parts[0] || '0', 10);
-      current.removed += parseInt(parts[1] || '0', 10);
-      const file = parts[2] || '';
-      if (file) current.files.push(file);
-      continue;
-    }
+    // Detect merge commit (2+ parents)
+    commit.isMerge = commit.parents.split(' ').filter(Boolean).length >= 2;
+
+    commits.push(commit);
   }
 
-  if (current) commits.push(current);
   return commits;
 }
 
@@ -97,7 +108,7 @@ export function formatCommit(c) {
     lines.push(`| **Refs** | ${escMd(c.refs)} |`);
   }
 
-  const prNum = c.prNumber || (c.isMerge ? extractPRNumber(c.title, c.body) : null);
+  const prNum = c.prNumber || extractPRNumber(c.title, c.body);
   if (prNum) {
     lines.push(`| **Pull Request** | #${prNum} |`);
   }
@@ -118,16 +129,23 @@ export function formatCommit(c) {
 }
 
 /**
- * Extract PR number from merge commit title or body.
+ * Extract a PR number from a squash-merged or merge commit.
  * @param {string} title
- * @param {string} body
+ * @param {string} [body]
  * @returns {string|null}
  */
-function extractPRNumber(title, body) {
-  const m = title.match(/#(\d+)/);
-  if (m) return m[1];
-  const m2 = body.match(/Merge pull request #(\d+)/);
-  if (m2) return m2[1];
+export function extractPRNumber(title, body = '') {
+  // Squash merges append the PR number to the subject: "fix: thing (#42)".
+  const squash = title.match(/\(#(\d+)\)\s*$/);
+  if (squash) return squash[1];
+
+  // Merge commits look like "Merge pull request #42 from owner/branch".
+  const merge = title.match(/^Merge pull request #(\d+)\b/);
+  if (merge) return merge[1];
+
+  const bodyMerge = body.match(/Merge pull request #(\d+)\b/);
+  if (bodyMerge) return bodyMerge[1];
+
   return null;
 }
 
@@ -169,13 +187,12 @@ export function generateChangelog(options = {}) {
 
   const run = options.run || execSafe;
   const since = options.since || getFirstCommit(run);
-  const fmt = '%H|%h|%s|%ai|%an <%ae>|%b|%P|%D';
 
   // Use a range that includes `since` itself
   const range = buildRange(since, run);
 
   const raw = run(
-    `git log --numstat --format="${fmt}" ${range}`,
+    `git log --numstat --format="${LOG_FORMAT}" ${range}`,
     ''
   );
 

@@ -31,7 +31,7 @@ function logEntry({
   numstat = ['1\t1\tREADME.md'],
 }) {
   return [
-    `${hash}|${short}|${title}|${date}|${author}|${body}|${parents}|${refs}`,
+    `\u0000${hash}\u001f${short}\u001f${title}\u001f${date}\u001f${author}\u001f${parents}\u001f${refs}\u0000${body}`,
     ...numstat,
   ].join('\n');
 }

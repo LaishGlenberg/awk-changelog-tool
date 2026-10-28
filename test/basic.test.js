@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseGitLog, formatCommit } from '../src/changelog.js';
+import { parseGitLog, formatCommit, extractPRNumber } from '../src/changelog.js';
 import {
   buildCommitToPR,
   buildMessageToPR,
@@ -13,7 +13,7 @@ import { mergeIncrementalChangelog } from '../src/incremental.js';
 describe('parseGitLog', () => {
   it('should parse a single commit with numstat', () => {
     const raw = [
-      'abc123def4567890123456789012345678901234|abc1234|Initial commit|2025-01-15 10:00:00 +0000|John <john@test.com>|||HEAD -> main',
+      '\u0000abc123def4567890123456789012345678901234\u001fabc1234\u001fInitial commit\u001f2025-01-15 10:00:00 +0000\u001fJohn <john@test.com>\u001f\u001fHEAD -> main\u0000',
       '1\t1\tREADME.md',
     ].join('\n');
 
@@ -30,7 +30,7 @@ describe('parseGitLog', () => {
 
   it('should detect merge commits from multiple parents', () => {
     const raw = [
-      'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa|aaa|Merge pull request #42|2025-01-15 10:00:00 +0000|John <john@test.com>|PR body|abc def|',
+      '\u0000aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\u001faaa\u001fMerge pull request #42\u001f2025-01-15 10:00:00 +0000\u001fJohn <john@test.com>\u001fabc def\u001f\u0000PR body',
       '',
     ].join('\n');
 
@@ -39,11 +39,38 @@ describe('parseGitLog', () => {
     assert.equal(commits[0].isMerge, true);
   });
 
+  it('should keep parents and refs after a multi-line body', () => {
+    const raw = [
+      '\u0000aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\u001faaa\u001fSquash (#1)\u001f2025-01-01\u001f\u001fparent1\u001fHEAD -> main\u0000* one',
+      '',
+      '* two',
+      '',
+      '1\t1\tfile.txt',
+    ].join('\n');
+
+    const commits = parseGitLog(raw);
+    assert.equal(commits[0].parents, 'parent1');
+    assert.equal(commits[0].refs, 'HEAD -> main');
+    assert.equal(commits[0].body, '* one\n\n* two');
+    assert.equal(commits[0].added, 1);
+  });
+
+  it('should detect a merge commit that has a multi-line body', () => {
+    const raw = [
+      '\u0000bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\u001fbbb\u001fMerge pull request #7 from owner/branch\u001f2025-01-01\u001f\u001fp1 p2\u001f\u0000line one',
+      'line two',
+    ].join('\n');
+
+    const commits = parseGitLog(raw);
+    assert.equal(commits[0].isMerge, true);
+    assert.equal(commits[0].body, 'line one\nline two');
+  });
+
   it('should parse multiple commits', () => {
     const raw = [
-      'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa|aaa|First|2025-01-01|||parent1|',
+      '\u0000aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\u001faaa\u001fFirst\u001f2025-01-01\u001f\u001fparent1\u001f\u0000',
       '1\t1\tfile1.txt',
-      'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb|bbb|Second|2025-01-02|||parent2|',
+      '\u0000bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\u001fbbb\u001fSecond\u001f2025-01-02\u001f\u001fparent2\u001f\u0000',
       '2\t1\tfile2.txt',
       '3\t2\tfile3.txt',
     ].join('\n');
@@ -65,7 +92,7 @@ describe('parseGitLog', () => {
 
   it('should skip binary numstat lines but keep textual ones', () => {
     const raw = [
-      'abc123def4567890123456789012345678901234|abc1234|Add assets|2025-01-15 10:00:00 +0000|John <john@test.com>||p1|',
+      '\u0000abc123def4567890123456789012345678901234\u001fabc1234\u001fAdd assets\u001f2025-01-15 10:00:00 +0000\u001fJohn <john@test.com>\u001fp1\u001f\u0000',
       '-\t-\tlogo.png',
       '3\t0\tsrc/app.js',
     ].join('\n');
@@ -75,6 +102,20 @@ describe('parseGitLog', () => {
     assert.equal(commits[0].added, 3);
     assert.equal(commits[0].removed, 0);
     assert.deepEqual(commits[0].files, ['src/app.js']);
+  });
+});
+
+describe('extractPRNumber', () => {
+  it('should read the squash-merge title marker', () => {
+    assert.equal(extractPRNumber('fix: thing (#42)'), '42');
+  });
+
+  it('should read a merge commit title', () => {
+    assert.equal(extractPRNumber('Merge pull request #7 from owner/branch'), '7');
+  });
+
+  it('should not treat an issue reference as a pull request', () => {
+    assert.equal(extractPRNumber('fix: handle #123 edge case'), null);
   });
 });
 

@@ -1,5 +1,5 @@
 import { execSafe, ensureGitRepo } from './utils.js';
-import { parseGitLog, formatCommit, getFirstCommit } from './changelog.js';
+import { parseGitLog, formatCommit, getFirstCommit, extractPRNumber, LOG_FORMAT } from './changelog.js';
 
 /**
  * @typedef {object} PRData
@@ -162,20 +162,6 @@ export function buildMessageToPR(messagesByPR) {
 }
 
 /**
- * Extract PR number from merge commit title or body.
- * @param {string} title
- * @param {string} body
- * @returns {string|null}
- */
-function extractPRNumber(title, body) {
-  const m = title.match(/#(\d+)/);
-  if (m) return m[1];
-  const m2 = body.match(/Merge pull request #(\d+)/);
-  if (m2) return m2[1];
-  return null;
-}
-
-/**
  * Get the date of a commit ref.
  * @param {string} ref
  * @returns {string}
@@ -204,7 +190,6 @@ export function generateChangelogWithPRs(options = {}) {
 
   const run = options.run || execSafe;
   const since = options.since || getFirstCommit(run);
-  const fmt = '%H|%h|%s|%ai|%an <%ae>|%b|%P|%D';
 
   // Use a range that includes `since` itself
   const parent = run(`git rev-parse --verify "${since}^"`);
@@ -213,7 +198,7 @@ export function generateChangelogWithPRs(options = {}) {
     : parent ? `"${since}^..HEAD"` : `--root HEAD`;
 
   const raw = run(
-    `git log --numstat --format="${fmt}" ${range}`,
+    `git log --numstat --format="${LOG_FORMAT}" ${range}`,
     ''
   );
 

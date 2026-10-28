@@ -9,7 +9,11 @@ import { fileURLToPath } from 'node:url';
 
 // Pack and install the distributable tarball, then exercise both its CLI and API.
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+// Run npm through Node when its CLI entry point is known: Windows cannot spawn a
+// `.cmd` shim without a shell.
+const npmCli = process.env.npm_execpath;
+const npmCommand = npmCli ? process.execPath : process.platform === 'win32' ? 'npm.cmd' : 'npm';
+const npmArgs = (args) => (npmCli ? [npmCli, ...args] : args);
 
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, { encoding: 'utf8', ...options });
@@ -17,7 +21,9 @@ function run(command, args, options = {}) {
   return result;
 }
 
-const npmCheck = run(npmCommand, ['--version']);
+const runNpm = (args, options = {}) => run(npmCommand, npmArgs(args), options);
+
+const npmCheck = runNpm(['--version']);
 const npmAvailable = npmCheck.status === 0;
 
 test(
@@ -30,14 +36,15 @@ test(
 
     try {
       // Pack the exact file set that would be published to npm.
-      const pack = run(
-        npmCommand,
+      const pack = runNpm(
         ['pack', '--json', '--pack-destination', workDir, '--loglevel=error'],
         { cwd: projectRoot },
       );
       assert.equal(pack.status, 0, pack.stderr);
 
-      const [packageInfo] = JSON.parse(pack.stdout);
+      // npm <= 10 returns an array here, npm 11+ returns an object keyed by name.
+      const packed = JSON.parse(pack.stdout);
+      const [packageInfo] = Array.isArray(packed) ? packed : Object.values(packed);
       const tarball = join(workDir, packageInfo.filename);
       assert.ok(existsSync(tarball), `npm pack did not create ${tarball}`);
 
@@ -49,7 +56,7 @@ test(
       // Install the local tarball into an isolated project. Ignore dependency
       // lifecycle scripts: this package's CLI/API paths do not require node-jq's
       // optional binary, and the test should not depend on that external download.
-      const install = run(npmCommand, [
+      const install = runNpm([
         'install',
         '--prefix', installDir,
         '--no-audit',
